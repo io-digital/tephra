@@ -89,7 +89,7 @@ module.exports = (class RadiusServer extends EventEmitter {
     return typeof onUnbound === 'function' ? onUnbound() : this;
   }
 
-  send(type, address, port, code, attributes, vendorAttributes, onSent) {
+  send(type, code, rinfo, attributes, vendorAttributes, onSent) {
     try {
       const encoded = this.RADIUS.encode({
         code: code,
