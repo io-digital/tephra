@@ -2,25 +2,23 @@
 'use strict';
 
 function onMessage(type, message, rinfo) {
-  var decoded;
   try {
-    decoded = this.RADIUS.decode({
+    var decoded = this.RADIUS.decode({
       packet: message,
       secret: this.SHARED_SECRET
     });
-
+    return this.emit(
+      (
+        decoded.code === 'Accounting-Request' ?
+        `${decoded.code}-${decoded.attributes['Acct-Status-Type']}` :
+        decoded.code
+      ),
+      decoded,
+      rinfo
+    );
   } catch (ex) {
     return this.emit(`error#decode#${type}`, ex.message);
   }
-  return this.emit(
-    (
-      decoded.code === 'Accounting-Request' ?
-      `${decoded.code}-${decoded.attributes['Acct-Status-Type']}` :
-      decoded.code
-    ),
-    decoded,
-    rinfo
-  );
 }
 
 function marshallAttributes(attributes, vendorAttributes) {
