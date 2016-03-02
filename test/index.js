@@ -39,7 +39,7 @@ const packets = {
 
 describe('RadiusServer', function() {
 
-  describe('auth and acct sockets', function() {
+  describe('auth, acct and coa sockets', function() {
 
     var server = new RadiusServer(
       'c33kr1t',
@@ -58,7 +58,7 @@ describe('RadiusServer', function() {
 
   });
 
-  describe('auth and acct packet transmission', function() {
+  describe('auth, acct and coa packet transmission', function() {
 
     var server;
 
@@ -78,36 +78,43 @@ describe('RadiusServer', function() {
 
     it('should handle invalid auth request packets gracefully', function(done) {
       server.on('error#decode#auth', done.bind(done, null));
-      send('auth', packets.auth.mangled);
+      process.nextTick(send.bind(send, 'auth', packets.auth.mangled));
     });
 
     it('should emit Access-Request object on receiving packet', function(done) {
       server.on('Access-Request', done.bind(done, null));
-      send('auth', packets.auth.healthy);
+      process.nextTick(send.bind(send, 'auth', packets.auth.healthy));
     });
 
     it('should handle invalid acct request packets gracefully', function(done) {
       server.on('error#decode#acct', done.bind(done, null));
-      send('acct', packets.acct.mangled);
+      process.nextTick(send.bind(send, 'acct', packets.acct.mangled));
     });
 
-    it('should emit Accounting-Request object on receiving packet', function(done) {
+    it('should emit Accounting-Request-Accounting-On object on receiving packet', function(done) {
       server.on('Accounting-Request-Accounting-On', done.bind(done, null));
-      send('acct', packets.acct.healthy);
+      process.nextTick(send.bind(send, 'acct', packets.acct.healthy));
     });
 
     it('should send a response correctly for accounting-requests', function(done) {
       server.on('Accounting-Request-Accounting-On', function(request, rinfo) {
         server.respond('ACCT', request, 'Accounting-Response', rinfo, [], [], done);
       });
-      send('acct', packets.acct.healthy);
+      process.nextTick(send.bind(send, 'acct', packets.acct.healthy));
+    });
+
+    it('should send a response correctly for accounting interim packets', function(done) {
+      server.on('Accounting-Request-Interim-Update', function(request, rinfo) {
+        server.respond('ACCT', request, 'Accounting-Response', rinfo, [], [], done);
+      });
+      process.nextTick(send.bind(send, 'acct', packets.acct.interimUpdate));
     });
 
     it('should send a response correctly for access-requests', function(done) {
       server.on('Access-Request', function(request, rinfo) {
         server.respond('AUTH', request, 'Access-Accept', rinfo, [], [], done);
       });
-      send('auth', packets.auth.healthy);
+      process.nextTick(send.bind(send, 'auth', packets.auth.healthy));
     });
 
   });
