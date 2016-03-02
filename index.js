@@ -8,11 +8,9 @@ function onMessage(type, message, rinfo) {
       secret: this.SHARED_SECRET
     });
     return this.emit(
-      (
-        decoded.code === 'Accounting-Request' ?
-        `${decoded.code}-${decoded.attributes['Acct-Status-Type']}` :
-        decoded.code
-      ),
+      (decoded.code === 'Accounting-Request' ?
+       `${decoded.code}-${decoded.attributes['Acct-Status-Type']}` :
+       decoded.code),
       decoded,
       rinfo
     );
@@ -36,7 +34,14 @@ const EventEmitter = require('events');
 const dgram = require('dgram');
 
 module.exports = (class RadiusServer extends EventEmitter {
-  constructor(SHARED_SECRET, AUTH_PORT, ACCT_PORT, COA_PORT, VENDOR_DICTIONARY_PATH, VENDOR_ID) {
+  constructor(
+    SHARED_SECRET,
+    AUTH_PORT,
+    ACCT_PORT,
+    COA_PORT,
+    VENDOR_DICTIONARY_PATH,
+    VENDOR_ID
+  ) {
     super();
 
     if (!(SHARED_SECRET && AUTH_PORT && ACCT_PORT && COA_PORT)) {
