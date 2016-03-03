@@ -1,7 +1,6 @@
 {
-  "name": "lava-server",
+  "name": "tephra",
   "version": "0.2.0",
-  "private": true,
   "description": "don't fall in ;)",
   "scripts": {
     "test": "istanbul test _mocha -- -R spec"
@@ -16,7 +15,7 @@
   "os": [
     "!win32"
   ],
-  "license": "Unlicenced",
+  "license": "BSD-3-Clause",
   "devDependencies": {
     "chai": "^3.5.0",
     "istanbul": "^0.3.22",
