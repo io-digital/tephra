@@ -12,6 +12,8 @@ npm test
 ##### example
 
 ```javascript
+var tephra = require('tephra');
+var server = new tephra('shared_secret', 1812, 1813, 1814);
 var users = {'joe-bloggs': 'secret-password'};
 
 server.on('Access-Request', function(request, rinfo) {
@@ -22,5 +24,5 @@ server.on('Access-Request', function(request, rinfo) {
   } else {
     server.respond('auth', request, 'Access-Reject', rinfo, [], []);
   }
-});
+}).bind();
 ```
