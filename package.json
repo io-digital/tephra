@@ -1,6 +1,6 @@
 {
   "name": "tephra",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "an evented radius server",
   "keywords": [
     "radius",
@@ -23,7 +23,7 @@
   },
   "bugs": {
     "url": "https://github.com/io-digital/tephra/issues",
-    "email" : "ant@io.co.za"
+    "email": "ant@io.co.za"
   },
   "engines": {
     "node": ">=4.2.0"
