@@ -11,7 +11,8 @@
     "service"
   ],
   "scripts": {
-    "test": "istanbul test _mocha -- -R spec"
+    "test": "istanbul test _mocha -- -R spec",
+    "coverage": "istanbul cover _mocha --report lcovonly -- test -R spec"
   },
   "contributors": [
     "Barry Botha <barry@io.co.za>",
@@ -34,6 +35,7 @@
   "license": "BSD-3-Clause",
   "devDependencies": {
     "chai": "^3.5.0",
+    "codeclimate-test-reporter": "^0.3.1",
     "istanbul": "^0.3.22",
     "mocha": "^2.4.5"
   },

@@ -1,15 +1,9 @@
 
-# tephra [![Build Status](https://travis-ci.org/io-digital/tephra.svg?branch=master)](https://travis-ci.org/io-digital/tephra)
+# tephra [![Build Status](https://travis-ci.org/io-digital/tephra.svg?branch=master)](https://travis-ci.org/io-digital/tephra) [![Test Coverage](https://codeclimate.com/github/io-digital/tephra/badges/coverage.svg)](https://codeclimate.com/github/io-digital/tephra/coverage)
 
 > tephra, n: rock fragments and particles ejected by a volcanic eruption
 
 an evented [radius](https://en.wikipedia.org/wiki/RADIUS) server supporting node >=4.2.0
-
-##### test
-
-```
-npm test
-```
 
 ##### example
 
