@@ -17,6 +17,14 @@
     "Barry Botha <barry@io.co.za>",
     "Ant Cosentino <ant@io.co.za>"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/io-digital/tephra"
+  },
+  "bugs": {
+    "url": "https://github.com/io-digital/tephra/issues",
+    "email" : "ant@io.co.za"
+  },
   "engines": {
     "node": ">=4.2.0"
   },
