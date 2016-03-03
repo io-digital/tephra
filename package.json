@@ -1,6 +1,6 @@
 {
   "name": "tephra",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "don't fall in ;)",
   "scripts": {
     "test": "istanbul test _mocha -- -R spec"
