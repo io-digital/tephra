@@ -39,20 +39,38 @@ const packets = {
 
 describe('RadiusServer', function() {
 
-  describe('auth, acct and coa sockets', function() {
+  describe('lifecycle', function() {
 
-    var server = new RadiusServer(
+    var server;
+
+    it('#constructor should throw if required arguments are missing', function() {
+      expect(function() {
+        new RadiusServer();
+      }).to.throw(/Missing SHARED_SECRET/);
+    });
+
+    it('#constructor should throw if vendor_id is missing when dictionary_path is present', function() {
+      expect(function() {
+        new RadiusServer(
+          'c33kr1t',
+          1812, 1813, 1814,
+          `${__dirname}/dictionaries/mikrotik.dictionary`
+        );
+      }).to.throw(/argument VENDOR_ID/);
+    });
+
+    server = new RadiusServer(
       'c33kr1t',
       1812, 1813, 1814,
       `${__dirname}/dictionaries/mikrotik.dictionary`,
       14988
     );
 
-    it('should bind', function(done) {
+    it('sockets should bind', function(done) {
       server.bind(done);
     });
 
-    it('should unbind', function(done) {
+    it('sockets should unbind', function(done) {
       server.unbind(done);
     });
 
@@ -78,43 +96,63 @@ describe('RadiusServer', function() {
 
     it('should handle invalid auth request packets gracefully', function(done) {
       server.on('error#decode#auth', done.bind(done, null));
-      process.nextTick(send.bind(send, 'auth', packets.auth.mangled));
+      send('auth', packets.auth.mangled);
     });
 
     it('should emit Access-Request object on receiving packet', function(done) {
       server.on('Access-Request', done.bind(done, null));
-      process.nextTick(send.bind(send, 'auth', packets.auth.healthy));
+      send('auth', packets.auth.healthy);
     });
 
     it('should handle invalid acct request packets gracefully', function(done) {
       server.on('error#decode#acct', done.bind(done, null));
-      process.nextTick(send.bind(send, 'acct', packets.acct.mangled));
+      send('acct', packets.acct.mangled);
     });
 
     it('should emit Accounting-Request-Accounting-On object on receiving packet', function(done) {
       server.on('Accounting-Request-Accounting-On', done.bind(done, null));
-      process.nextTick(send.bind(send, 'acct', packets.acct.healthy));
+      send('acct', packets.acct.healthy);
     });
 
     it('should send a response correctly for accounting-requests', function(done) {
       server.on('Accounting-Request-Accounting-On', function(request, rinfo) {
         server.respond('acct', request, 'Accounting-Response', rinfo, [], [], done);
       });
-      process.nextTick(send.bind(send, 'acct', packets.acct.healthy));
+      send('acct', packets.acct.healthy);
     });
 
     it('should send a response correctly for accounting interim packets', function(done) {
       server.on('Accounting-Request-Interim-Update', function(request, rinfo) {
         server.respond('acct', request, 'Accounting-Response', rinfo, [], [], done);
       });
-      process.nextTick(send.bind(send, 'acct', packets.acct.interimUpdate));
+      send('acct', packets.acct.interimUpdate);
     });
 
     it('should send a response correctly for access-requests', function(done) {
       server.on('Access-Request', function(request, rinfo) {
         server.respond('auth', request, 'Access-Accept', rinfo, [], [], done);
       });
-      process.nextTick(send.bind(send, 'auth', packets.auth.healthy));
+      send('auth', packets.auth.healthy);
+    });
+
+    it('#send throw if supplied non-string type', function() {
+      expect(server.send).to.throw(/string argument type/);
+    });
+
+    it('#send throw if supplied non-array type', function() {
+      expect(server.send.bind(
+        server, 'acct', 0, {address: '0.0.0.0', port: 12345}, null, function() {}
+      )).to.throw(/attributes and vendorAttributes/);
+    });
+
+    it('#respond throw if supplied non-string type', function() {
+      expect(server.respond).to.throw(/string argument type/);
+    });
+
+    it('#respond throw if supplied non-array type', function() {
+      expect(server.respond.bind(
+        server, 'acct', null, 0, {address: '0.0.0.0', port: 12345}, null, function() {}
+      )).to.throw(/attributes and vendorAttributes/);
     });
 
   });

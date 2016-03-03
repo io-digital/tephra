@@ -20,14 +20,7 @@ function onMessage(type, message, rinfo) {
 }
 
 function marshallAttributes(attributes, vendorAttributes) {
-  var allAttributes = [];
-  if (Array.isArray(attributes) && attributes.length) {
-    allAttributes.push(attributes);
-  }
-  if (Array.isArray(vendorAttributes) && vendorAttributes.length) {
-    allAttributes.push(['Vendor-Specific', this.VENDOR_ID, vendorAttributes]);
-  }
-  return allAttributes;
+  return [attributes.concat(['Vendor-Specific', this.VENDOR_ID, vendorAttributes])];
 }
 
 const EventEmitter = require('events');
@@ -97,33 +90,47 @@ module.exports = (class RadiusServer extends EventEmitter {
   send(type, code, rinfo, attributes, vendorAttributes, onSent) {
     if (typeof type !== 'string') {
       throw new Error('Missing required string argument type');
-    }
-    try {
-      const encoded = this.RADIUS.encode({
-        code: code,
-        secret: this.SHARED_SECRET,
-        attributes: marshallAttributes.call(this, attributes, vendorAttributes)
-      });
-      return this.SOCKETS[type.toUpperCase()].send(encoded, 0, encoded.length, port, address, onSent || function() {});
-    } catch (ex) {
-      return onSent(ex);
+    } else if (!(Array.isArray(attributes) && Array.isArray(vendorAttributes))) {
+      throw new Error('Missing required arrays attributes and vendorAttributes');
+    } else {
+      try {
+        const encoded = this.RADIUS.encode({
+          attributes: marshallAttributes.call(this, attributes, vendorAttributes),
+          secret: this.SHARED_SECRET,
+          code: code
+        });
+        return this.SOCKETS[
+          type.toUpperCase()
+        ].send(
+          encoded, 0, encoded.length, rinfo.port, rinfo.address, onSent
+        );
+      } catch (ex) {
+        return onSent(ex);
+      }
     }
   }
 
   respond(type, packet, code, rinfo, attributes, vendorAttributes, onResponded) {
     if (typeof type !== 'string') {
       throw new Error('Missing required string argument type');
-    }
-    try {
-      const encoded = this.RADIUS.encode_response({
-        packet: packet,
-        code: code,
-        attributes: marshallAttributes.call(this, attributes, vendorAttributes),
-        secret: this.SHARED_SECRET
-      });
-      return this.SOCKETS[type.toUpperCase()].send(encoded, 0, encoded.length, rinfo.port, rinfo.address, onResponded || function() {});
-    } catch (ex) {
-      return onResponded(ex);
+    } else if (!(Array.isArray(attributes) && Array.isArray(vendorAttributes))) {
+      throw new Error('Missing required arrays attributes and vendorAttributes');
+    } else {
+      try {
+        const encoded = this.RADIUS.encode_response({
+          attributes: marshallAttributes.call(this, attributes, vendorAttributes),
+          secret: this.SHARED_SECRET,
+          packet: packet,
+          code: code
+        });
+        return this.SOCKETS[
+          type.toUpperCase()
+        ].send(
+          encoded, 0, encoded.length, rinfo.port, rinfo.address, onResponded
+        );
+      } catch (ex) {
+        return onResponded(ex);
+      }
     }
   }
 });
