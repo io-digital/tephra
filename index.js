@@ -95,19 +95,25 @@ module.exports = (class RadiusServer extends EventEmitter {
   }
 
   send(type, code, rinfo, attributes, vendorAttributes, onSent) {
+    if (typeof type !== 'string') {
+      throw new Error('Missing required string argument type');
+    }
     try {
       const encoded = this.RADIUS.encode({
         code: code,
         secret: this.SHARED_SECRET,
         attributes: marshallAttributes.call(this, attributes, vendorAttributes)
       });
-      return this.SOCKETS[type].send(encoded, 0, encoded.length, port, address, onSent);
+      return this.SOCKETS[type.toUpperCase()].send(encoded, 0, encoded.length, port, address, onSent || function() {});
     } catch (ex) {
       return onSent(ex);
     }
   }
 
   respond(type, packet, code, rinfo, attributes, vendorAttributes, onResponded) {
+    if (typeof type !== 'string') {
+      throw new Error('Missing required string argument type');
+    }
     try {
       const encoded = this.RADIUS.encode_response({
         packet: packet,
@@ -115,7 +121,7 @@ module.exports = (class RadiusServer extends EventEmitter {
         attributes: marshallAttributes.call(this, attributes, vendorAttributes),
         secret: this.SHARED_SECRET
       });
-      return this.SOCKETS[type].send(encoded, 0, encoded.length, rinfo.port, rinfo.address, onResponded);
+      return this.SOCKETS[type.toUpperCase()].send(encoded, 0, encoded.length, rinfo.port, rinfo.address, onResponded || function() {});
     } catch (ex) {
       return onResponded(ex);
     }
