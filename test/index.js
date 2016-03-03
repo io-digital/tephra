@@ -98,21 +98,21 @@ describe('RadiusServer', function() {
 
     it('should send a response correctly for accounting-requests', function(done) {
       server.on('Accounting-Request-Accounting-On', function(request, rinfo) {
-        server.respond('ACCT', request, 'Accounting-Response', rinfo, [], [], done);
+        server.respond('acct', request, 'Accounting-Response', rinfo, [], [], done);
       });
       process.nextTick(send.bind(send, 'acct', packets.acct.healthy));
     });
 
     it('should send a response correctly for accounting interim packets', function(done) {
       server.on('Accounting-Request-Interim-Update', function(request, rinfo) {
-        server.respond('ACCT', request, 'Accounting-Response', rinfo, [], [], done);
+        server.respond('acct', request, 'Accounting-Response', rinfo, [], [], done);
       });
       process.nextTick(send.bind(send, 'acct', packets.acct.interimUpdate));
     });
 
     it('should send a response correctly for access-requests', function(done) {
       server.on('Access-Request', function(request, rinfo) {
-        server.respond('AUTH', request, 'Access-Accept', rinfo, [], [], done);
+        server.respond('auth', request, 'Access-Accept', rinfo, [], [], done);
       });
       process.nextTick(send.bind(send, 'auth', packets.auth.healthy));
     });
