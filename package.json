@@ -1,7 +1,15 @@
 {
   "name": "tephra",
   "version": "0.3.3",
-  "description": "don't fall in ;)",
+  "description": "an evented radius server",
+  "keywords": [
+    "radius",
+    "remote",
+    "authentication",
+    "dial-in",
+    "user",
+    "service"
+  ],
   "scripts": {
     "test": "istanbul test _mocha -- -R spec"
   },
