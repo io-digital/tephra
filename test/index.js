@@ -139,20 +139,23 @@ describe('RadiusServer', function() {
       expect(server.send).to.throw(/string argument type/);
     });
 
-    it('#send throw if supplied non-array type', function() {
-      expect(server.send.bind(
-        server, 'acct', 0, {address: '0.0.0.0', port: 12345}, null, function() {}
-      )).to.throw(/attributes and vendorAttributes/);
+    it('#send yield an error if supplied non-array type', function(done) {
+      server.send('acct', 0, {address: '0.0.0.0', port: 12345}, null, null, function(err) {
+        expect(err).to.be.ok;
+        done();
+      });
     });
 
     it('#respond throw if supplied non-string type', function() {
       expect(server.respond).to.throw(/string argument type/);
     });
 
-    it('#respond throw if supplied non-array type', function() {
-      expect(server.respond.bind(
-        server, 'acct', null, 0, {address: '0.0.0.0', port: 12345}, null, function() {}
-      )).to.throw(/attributes and vendorAttributes/);
+    it('#respond yield an error if supplied non-array type', function(done) {
+      // type, packet, code, rinfo, attributes, vendorAttributes, onResponded
+      server.respond('acct', null, 0, {address: '0.0.0.0', port: 12345}, null, null, function(err) {
+        expect(err).to.be.ok;
+        done();
+      })
     });
 
   });

@@ -8,9 +8,11 @@ function onMessage(type, message, rinfo) {
       secret: this.SHARED_SECRET
     });
     return this.emit(
-      (decoded.code === 'Accounting-Request' ?
-       `${decoded.code}-${decoded.attributes['Acct-Status-Type']}` :
-       decoded.code),
+      (
+        decoded.code === 'Accounting-Request' ?
+        `${decoded.code}-${decoded.attributes['Acct-Status-Type']}` :
+        decoded.code
+      ),
       decoded,
       rinfo
     );
@@ -19,7 +21,16 @@ function onMessage(type, message, rinfo) {
   }
 }
 
+function send(buffer, rinfo, onSent) {
+  this.send(
+    buffer, 0, buffer.length, rinfo.port, rinfo.address, onSent
+  );
+}
+
 function marshallAttributes(attributes, vendorAttributes) {
+  if (!(Array.isArray(attributes) && Array.isArray(vendorAttributes))) {
+    throw new Error('Missing required arrays attributes and vendorAttributes');
+  }
   return [attributes.concat(['Vendor-Specific', this.VENDOR_ID, vendorAttributes])];
 }
 
@@ -90,8 +101,6 @@ module.exports = (class RadiusServer extends EventEmitter {
   send(type, code, rinfo, attributes, vendorAttributes, onSent) {
     if (typeof type !== 'string') {
       throw new Error('Missing required string argument type');
-    } else if (!(Array.isArray(attributes) && Array.isArray(vendorAttributes))) {
-      throw new Error('Missing required arrays attributes and vendorAttributes');
     } else {
       try {
         const encoded = this.RADIUS.encode({
@@ -99,10 +108,11 @@ module.exports = (class RadiusServer extends EventEmitter {
           secret: this.SHARED_SECRET,
           code: code
         });
-        return this.SOCKETS[
-          type.toUpperCase()
-        ].send(
-          encoded, 0, encoded.length, rinfo.port, rinfo.address, onSent
+        return send.call(
+          this.SOCKETS[type.toUpperCase()],
+          encoded,
+          rinfo,
+          onSent
         );
       } catch (ex) {
         return onSent(ex);
@@ -113,8 +123,6 @@ module.exports = (class RadiusServer extends EventEmitter {
   respond(type, packet, code, rinfo, attributes, vendorAttributes, onResponded) {
     if (typeof type !== 'string') {
       throw new Error('Missing required string argument type');
-    } else if (!(Array.isArray(attributes) && Array.isArray(vendorAttributes))) {
-      throw new Error('Missing required arrays attributes and vendorAttributes');
     } else {
       try {
         const encoded = this.RADIUS.encode_response({
@@ -123,10 +131,11 @@ module.exports = (class RadiusServer extends EventEmitter {
           packet: packet,
           code: code
         });
-        return this.SOCKETS[
-          type.toUpperCase()
-        ].send(
-          encoded, 0, encoded.length, rinfo.port, rinfo.address, onResponded
+        return send.call(
+          this.SOCKETS[type.toUpperCase()],
+          encoded,
+          rinfo,
+          onResponded
         );
       } catch (ex) {
         return onResponded(ex);
