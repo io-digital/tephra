@@ -40,6 +40,6 @@
     "mocha": "^2.4.5"
   },
   "dependencies": {
-    "radius": "https://github.com/skibz/node-radius"
+    "radius": "^1.1.2"
   }
 }
