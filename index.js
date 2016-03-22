@@ -12,14 +12,6 @@ function onMessage(type, message, rinfo) {
       `${decoded.code}-${decoded.attributes['Acct-Status-Type']}` :
       decoded.code
     );
-    if (this.PACKET_LOG_PATH) {
-      fs.createWriteStream(
-        path.join(
-          this.PACKET_LOG_PATH,
-          `${resolvedType}-${Date.now()}`
-        )
-      ).end(message);
-    }
     return this.emit(resolvedType, decoded, rinfo);
   } catch (ex) {
     return this.emit(`error#decode#${type}`, ex.message);
@@ -51,8 +43,7 @@ module.exports = (class RadiusServer extends EventEmitter {
     ACCT_PORT,
     COA_PORT,
     VENDOR_DICTIONARY_PATH,
-    VENDOR_ID,
-    PACKET_LOG_PATH
+    VENDOR_ID
   ) {
     super();
 
@@ -69,7 +60,6 @@ module.exports = (class RadiusServer extends EventEmitter {
     this.AUTH_PORT = AUTH_PORT;
     this.ACCT_PORT = ACCT_PORT;
     this.COA_PORT = COA_PORT;
-    this.PACKET_LOG_PATH = PACKET_LOG_PATH || false;
 
     if (VENDOR_DICTIONARY_PATH && VENDOR_ID) {
       this.RADIUS.add_dictionary(VENDOR_DICTIONARY_PATH);
