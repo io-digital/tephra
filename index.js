@@ -15,7 +15,7 @@ function onMessage(type, message, rinfo) {
     if (this.PACKET_LOG_PATH) {
       fs.createWriteStream(
         path.join(
-          PACKET_LOG_PATH,
+          this.PACKET_LOG_PATH,
           `${resolvedType}-${Date.now()}`
         )
       ).end(message);
