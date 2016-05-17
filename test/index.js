@@ -25,15 +25,15 @@ const RadiusServer = require('../');
 
 const packets = {
   auth: {
-    mangled: readFileSync(join(__dirname, '/packets/mangled.auth.packet')),
-    healthy: readFileSync(join(__dirname, '/packets/auth.packet'))
+    mangled: readFileSync(__dirname + '/packets/mikrotik/mangled.auth.packet'),
+    healthy: readFileSync(__dirname + '/packets/mikrotik/auth.packet')
   },
   acct: {
-    mangled: readFileSync(join(__dirname, '/packets/mangled.acct.packet')),
-    healthy: readFileSync(join(__dirname, '/packets/acct.packet')),
-    start: readFileSync(join(__dirname, '/packets/Accounting-Request-Start.packet')),
-    interimUpdate: readFileSync(join(__dirname, '/packets/Accounting-Request-Interim-Update.packet')),
-    stop: readFileSync(join(__dirname, '/packets/Accounting-Request-Stop.packet'))
+    mangled: readFileSync(__dirname + '/packets/mikrotik/mangled.acct.packet'),
+    healthy: readFileSync(__dirname + '/packets/mikrotik/acct.packet'),
+    start: readFileSync(__dirname + '/packets/mikrotik/Accounting_Request_Start.packet'),
+    interimUpdate: readFileSync(__dirname + '/packets/mikrotik/Accounting_Request_Interim_Update.packet'),
+    stop: readFileSync(__dirname + '/packets/mikrotik/Accounting_Request_Stop.packet')
   }
 };
 
