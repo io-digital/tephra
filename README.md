@@ -22,3 +22,7 @@ server.on('Access-Request', function(request, rinfo) {
   }
 }).bind();
 ```
+
+##### todo
+
+wrap up the parameters in event handlers and provide a single parameter with an interface designed for sending responses if applicable that has the rinfo baked in

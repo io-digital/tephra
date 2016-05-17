@@ -7,16 +7,51 @@ function onMessage(type, message, rinfo) {
       packet: message,
       secret: this.SHARED_SECRET
     });
-    var resolvedType = (
+    return this.emit((
       decoded.code === 'Accounting-Request' ?
       `${decoded.code}-${decoded.attributes['Acct-Status-Type']}` :
       decoded.code
-    );
-    return this.emit(resolvedType, decoded, rinfo);
+    ), decoded, rinfo);
   } catch (ex) {
     return this.emit(`error#decode#${type}`, ex.message);
   }
 }
+
+function changeOfAuthorisationMessage(message, rinfo) {
+  try {
+    var decoded = this.RADIUS.decode({
+      packet: message,
+      secret: this.SHARED_SECRET
+    });
+    return this.emit(decoded.code, decoded, rinfo);
+  } catch (ex) {
+    return this.emit(`error#decode#coa`, ex.message);
+  }
+}
+
+// function authenticationMessage(message, rinfo) {
+//   try {
+//     var decoded = this.RADIUS.decode({
+//       packet: message,
+//       secret: this.SHARED_SECRET
+//     });
+//     return this.emit(decoded.code, decoded, rinfo);
+//   } catch (ex) {
+//     return this.emit(`error#decode#auth`, ex.message);
+//   }
+// }
+
+// function accountingMessage(message, rinfo) {
+//   try {
+//     var decoded = this.RADIUS.decode({
+//       packet: message,
+//       secret: this.SHARED_SECRET
+//     });
+//     return this.emit(`${decoded.code}-${decoded.attributes['Acct-Status-Type']}`, decoded, rinfo);
+//   } catch (ex) {
+//     return this.emit(`error#decode#acct`, ex.message);
+//   }
+// }
 
 function send(buffer, rinfo, onSent) {
   this.send(buffer, 0, buffer.length, rinfo.port, rinfo.address, onSent);
@@ -31,8 +66,7 @@ function marshallAttributes(attributes, vendorAttributes) {
   return [attributes.concat(['Vendor-Specific', this.VENDOR_ID, vendorAttributes])];
 
   // todo
-  // -- ensure this is functionally equivalent and that
-  // the guards work
+  // -- ensure this is functionally equivalent and that the guards work
   // return [
   //   (Array.isArray(attributes) ? attributes : []).concat(
   //     this.VENDOR_ID && Array.isArray(vendorAttributes) ?
@@ -47,6 +81,14 @@ const path = require('path');
 const fs = require('fs');
 
 module.exports = (class RadiusServer extends EventEmitter {
+
+  // "Disconnect-Request",
+  // 41: "Disconnect-ACK",
+  // 42: "Disconnect-NAK",
+  // 43: "CoA-Request",
+  // 44: "CoA-ACK",
+  // 45: "CoA-NAK",
+
   constructor(
     SHARED_SECRET,
     AUTH_PORT,
@@ -78,13 +120,16 @@ module.exports = (class RadiusServer extends EventEmitter {
 
     this.SOCKETS = {
       AUTH: dgram.createSocket('udp4', (message, rinfo) => {
+        // authenticationMessage.apply(this, arguments)
         onMessage.call(this, 'auth', message, rinfo);
       }),
       ACCT: dgram.createSocket('udp4', (message, rinfo) => {
+        // accountingMessage.apply(this, arguments);
         onMessage.call(this, 'acct', message, rinfo);
       }),
       COA: dgram.createSocket('udp4', (message, rinfo) => {
-        onMessage.call(this, 'coa', message, rinfo);
+        changeOfAuthorisationMessage.apply(this, arguments);
+        // onMessage.call(this, 'coa', message, rinfo);
       })
       // todo
       // -- ensure this is functionally equivalent
@@ -146,10 +191,10 @@ module.exports = (class RadiusServer extends EventEmitter {
     } else {
       try {
         const encoded = this.RADIUS.encode_response({
-          attributes: marshallAttributes.call(this, attributes, vendorAttributes),
-          secret: this.SHARED_SECRET,
           packet: packet,
-          code: code
+          code: code,
+          attributes: marshallAttributes.call(this, attributes, vendorAttributes),
+          secret: this.SHARED_SECRET
         });
         return send.call(
           this.SOCKETS[type.toUpperCase()],
