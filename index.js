@@ -19,16 +19,26 @@ function onMessage(type, message, rinfo) {
 }
 
 function send(buffer, rinfo, onSent) {
-  this.send(
-    buffer, 0, buffer.length, rinfo.port, rinfo.address, onSent
-  );
+  this.send(buffer, 0, buffer.length, rinfo.port, rinfo.address, onSent);
 }
 
+// fixme
+// -- doesn't care if no vendor id is set
 function marshallAttributes(attributes, vendorAttributes) {
   if (!(Array.isArray(attributes) && Array.isArray(vendorAttributes))) {
     throw new Error('Missing required arrays attributes and vendorAttributes');
   }
   return [attributes.concat(['Vendor-Specific', this.VENDOR_ID, vendorAttributes])];
+
+  // todo
+  // -- ensure this is functionally equivalent and that
+  // the guards work
+  // return [
+  //   (Array.isArray(attributes) ? attributes : []).concat(
+  //     this.VENDOR_ID && Array.isArray(vendorAttributes) ?
+  //     ['Vendor-Specific', this.VENDOR_ID, vendorAttributes] : []
+  //   )
+  // ];
 }
 
 const EventEmitter = require('events');
@@ -76,6 +86,17 @@ module.exports = (class RadiusServer extends EventEmitter {
       COA: dgram.createSocket('udp4', (message, rinfo) => {
         onMessage.call(this, 'coa', message, rinfo);
       })
+      // todo
+      // -- ensure this is functionally equivalent
+      // AUTH: dgram.createSocket('udp4', function() {
+      //   onMessage.apply(this, ['auth'].concat(arguments));
+      // }.bind(this)),
+      // ACCT: dgram.createSocket('udp4', function() {
+      //   onMessage.apply(this, ['acct'].concat(arguments));
+      // }.bind(this)),
+      // COA: dgram.createSocket('udp4', function() {
+      //   onMessage.call(this, ['coa'].concat(arguments));
+      // }.bind(this))
     };
   }
 
