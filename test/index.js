@@ -21,7 +21,7 @@ const dgram = require('dgram');
 
 const expect = require('chai').expect;
 
-const RadiusServer = require('../');
+const tephra = require('../');
 
 const packets = {
   auth: {
@@ -37,7 +37,7 @@ const packets = {
   }
 };
 
-describe('RadiusServer', function() {
+describe('tephra', function() {
 
   describe('lifecycle', function() {
 
@@ -45,13 +45,13 @@ describe('RadiusServer', function() {
 
     it('#constructor should throw if required arguments are missing', function() {
       expect(function() {
-        new RadiusServer();
+        new tephra();
       }).to.throw(/Missing SHARED_SECRET/);
     });
 
     it('#constructor should throw if vendor_id is missing when dictionary_path is present', function() {
       expect(function() {
-        new RadiusServer(
+        new tephra(
           'c33kr1t',
           1812, 1813, 1814,
           `${__dirname}/dictionaries/mikrotik.dictionary`
@@ -59,7 +59,7 @@ describe('RadiusServer', function() {
       }).to.throw(/argument VENDOR_ID/);
     });
 
-    server = new RadiusServer(
+    server = new tephra(
       'c33kr1t',
       1812, 1813, 1814,
       `${__dirname}/dictionaries/mikrotik.dictionary`,
@@ -81,7 +81,7 @@ describe('RadiusServer', function() {
     var server;
 
     beforeEach(function(done) {
-      server = new RadiusServer(
+      server = new tephra(
         'c33kr1t',
         1812, 1813, 1814,
         `${__dirname}/dictionaries/mikrotik.dictionary`,
