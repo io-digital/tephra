@@ -12,17 +12,17 @@ var tephra = require('tephra');
 var server = new tephra('shared_secret', 1812, 1813, 1814);
 var users = {'joe-bloggs': 'secret-password'};
 
-server.on('Access-Request', function(request, rinfo) {
-  var username = request.attributes['User-Name'],
-      password = request.attributes['User-Password'];
+server.on('Access-Request', function(packet, rinfo, accept, reject) {
+  var username = packet.attributes['User-Name'],
+      password = packet.attributes['User-Password'];
   if (username in users && users[username] === password) {
-    server.respond('auth', request, 'Access-Accept', rinfo, [], []);
+    accept([], [], console.log.bind(console));
   } else {
-    server.respond('auth', request, 'Access-Reject', rinfo, [], []);
+    reject([], [], console.log.bind(console));
   }
+}).on('Accounting-Request-Start', function(packet, rinfo, respond) {
+  respond([], [], console.log.bind(console))
+}).on('Accounting-Request-Interim-Update', function(packet, rinfo, respond) {
+  respond([], [], console.log.bind(console))
 }).bind();
 ```
-
-##### todo
-
-wrap up the parameters in event handlers and provide a single parameter with an interface designed for sending responses if applicable that has the rinfo baked in
