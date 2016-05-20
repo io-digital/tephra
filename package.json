@@ -34,14 +34,10 @@
   ],
   "license": "BSD-3-Clause",
   "devDependencies": {
-    "body-parser": "^1.15.1",
     "chai": "^3.5.0",
     "codeclimate-test-reporter": "^0.3.1",
-    "cors": "^2.7.1",
-    "express": "^4.13.4",
     "istanbul": "^0.3.22",
-    "mocha": "^2.4.5",
-    "validator": "^5.2.0"
+    "mocha": "^2.4.5"
   },
   "dependencies": {
     "radius": "^1.1.2"
