@@ -91,8 +91,8 @@ describe('tephra', function() {
     });
 
     afterEach(function(done) {
-      server.unbind(done);
-    });
+      server.unbind(done)
+    })
 
     it('should handle invalid auth request packets gracefully', function(done) {
       server.on('error#decode#auth', done.bind(done, null));
@@ -109,28 +109,30 @@ describe('tephra', function() {
       send('acct', packets.acct.mangled);
     });
 
-    it('should emit Accounting-Request-Accounting-On object on receiving packet', function(done) {
-      server.on('Accounting-Request-Accounting-On', done.bind(done, null));
-      send('acct', packets.acct.healthy);
-    });
-
-    it('should send a response correctly for accounting-requests', function(done) {
-      server.on('Accounting-Request-Accounting-On', function(request, rinfo) {
-        server.respond('acct', request, 'Accounting-Response', rinfo, [], [], done);
-      });
-      send('acct', packets.acct.healthy);
-    });
-
-    it('should send a response correctly for accounting interim packets', function(done) {
+    it('should send a response correctly for accounting packets', function(done) {
       server.on('Accounting-Request-Interim-Update', function(request, rinfo) {
         server.respond('acct', request, 'Accounting-Response', rinfo, [], [], done);
       });
       send('acct', packets.acct.interimUpdate);
     });
 
-    it('should send a response correctly for access-requests', function(done) {
+    it('should send a response correctly for accounting packets using the event handler responder function', function(done) {
+      server.on('Accounting-Request-Interim-Update', function(request, rinfo, respond) {
+        respond([], [], done);
+      });
+      send('acct', packets.acct.interimUpdate);
+    });
+
+    it('should send a response correctly for access-request packets', function(done) {
       server.on('Access-Request', function(request, rinfo) {
         server.respond('auth', request, 'Access-Accept', rinfo, [], [], done);
+      });
+      send('auth', packets.auth.healthy);
+    });
+
+    it('should send a response correctly for access-request packets using the event handler responder function', function(done) {
+      server.on('Access-Request', function(request, rinfo, accept, reject) {
+        accept([], [], done);
       });
       send('auth', packets.auth.healthy);
     });
@@ -150,7 +152,7 @@ describe('tephra', function() {
       expect(server.respond).to.throw(/string argument type/);
     });
 
-    it('#respond yield an error if supplied non-array type', function(done) {
+    it('#respond yield an error if no packet is given', function(done) {
       // type, packet, code, rinfo, attributes, vendorAttributes, onResponded
       server.respond('acct', null, 0, {address: '0.0.0.0', port: 12345}, null, null, function(err) {
         expect(err).to.be.ok;
