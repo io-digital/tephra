@@ -40,6 +40,7 @@
     "mocha": "^2.4.5"
   },
   "dependencies": {
-    "radius": "^1.1.2"
+    "radius": "^1.1.2",
+    "to-iso-string": "0.0.2"
   }
 }
