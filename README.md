@@ -26,3 +26,5 @@ server.on('Access-Request', function(packet, rinfo, accept, reject) {
   respond([], [], console.log.bind(console))
 }).bind();
 ```
+
+more examples can be found in `bin/`
