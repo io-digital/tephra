@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 
 'use strict';
 
@@ -12,10 +13,10 @@ var shared_secret = process.argv[3];
 
 if (!(packet && shared_secret)) process.exit(1);
 
-radius.add_dictionary(`${__dirname}/dictionaries/mikrotik.dictionary`);
+radius.add_dictionary(`${__dirname}/../test/dictionaries/mikrotik.dictionary`);
 
 fs.readFile(
-  `${__dirname}/packets/mikrotik/${packet}`,
+  `${__dirname}/../test/packets/mikrotik/${packet}`,
   function(err, buffer) {
     if (err) throw err;
     console.dir(

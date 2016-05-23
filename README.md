@@ -3,7 +3,7 @@
 
 > tephra, n: rock fragments and particles ejected by a volcanic eruption
 
-an evented [radius](https://en.wikipedia.org/wiki/RADIUS) server supporting node >=4.2.0
+an evented [radius](https://en.wikipedia.org/wiki/RADIUS) server supporting node >=4.0.0
 
 ##### example
 
@@ -12,13 +12,23 @@ var tephra = require('tephra');
 var server = new tephra('shared_secret', 1812, 1813, 1814);
 var users = {'joe-bloggs': 'secret-password'};
 
-server.on('Access-Request', function(request, rinfo) {
-  var username = request.attributes['User-Name'],
-      password = request.attributes['User-Password'];
+server.on('Access-Request', function(packet, rinfo, accept, reject) {
+  var username = packet.attributes['User-Name'],
+      password = packet.attributes['User-Password'];
   if (username in users && users[username] === password) {
-    server.respond('auth', request, 'Access-Accept', rinfo, [], []);
+    accept([], [], console.log.bind(console));
   } else {
-    server.respond('auth', request, 'Access-Reject', rinfo, [], []);
+    reject([], [], console.log.bind(console));
   }
+}).on('Accounting-Request-Start', function(packet, rinfo, respond) {
+  respond([], [], console.log.bind(console))
+}).on('Accounting-Request-Interim-Update', function(packet, rinfo, respond) {
+  respond([], [], console.log.bind(console))
 }).bind();
 ```
+
+more examples can be found in `bin/`
+
+##### notes
+
+for some weird reason, travis builds fail if we don't include `to-iso-string` as a dependency...

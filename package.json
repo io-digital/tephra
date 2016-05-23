@@ -27,7 +27,7 @@
     "email": "ant@io.co.za"
   },
   "engines": {
-    "node": ">=4.2.0"
+    "node": ">=4.0.0"
   },
   "os": [
     "!win32"
@@ -40,6 +40,7 @@
     "mocha": "^2.4.5"
   },
   "dependencies": {
-    "radius": "https://github.com/skibz/node-radius"
+    "radius": "^1.1.2",
+    "to-iso-string": "0.0.2"
   }
 }

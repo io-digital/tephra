@@ -21,23 +21,23 @@ const dgram = require('dgram');
 
 const expect = require('chai').expect;
 
-const RadiusServer = require('../');
+const tephra = require('../');
 
 const packets = {
   auth: {
-    mangled: readFileSync(join(__dirname, '/packets/mangled.auth.packet')),
-    healthy: readFileSync(join(__dirname, '/packets/auth.packet'))
+    mangled: readFileSync(__dirname + '/packets/mikrotik/mangled.auth.packet'),
+    healthy: readFileSync(__dirname + '/packets/mikrotik/auth.packet')
   },
   acct: {
-    mangled: readFileSync(join(__dirname, '/packets/mangled.acct.packet')),
-    healthy: readFileSync(join(__dirname, '/packets/acct.packet')),
-    start: readFileSync(join(__dirname, '/packets/Accounting-Request-Start.packet')),
-    interimUpdate: readFileSync(join(__dirname, '/packets/Accounting-Request-Interim-Update.packet')),
-    stop: readFileSync(join(__dirname, '/packets/Accounting-Request-Stop.packet'))
+    mangled: readFileSync(__dirname + '/packets/mikrotik/mangled.acct.packet'),
+    healthy: readFileSync(__dirname + '/packets/mikrotik/acct.packet'),
+    start: readFileSync(__dirname + '/packets/mikrotik/Accounting_Request_Start.packet'),
+    interimUpdate: readFileSync(__dirname + '/packets/mikrotik/Accounting_Request_Interim_Update.packet'),
+    stop: readFileSync(__dirname + '/packets/mikrotik/Accounting_Request_Stop.packet')
   }
 };
 
-describe('RadiusServer', function() {
+describe('tephra', function() {
 
   describe('lifecycle', function() {
 
@@ -45,13 +45,13 @@ describe('RadiusServer', function() {
 
     it('#constructor should throw if required arguments are missing', function() {
       expect(function() {
-        new RadiusServer();
+        new tephra();
       }).to.throw(/Missing SHARED_SECRET/);
     });
 
     it('#constructor should throw if vendor_id is missing when dictionary_path is present', function() {
       expect(function() {
-        new RadiusServer(
+        new tephra(
           'c33kr1t',
           1812, 1813, 1814,
           `${__dirname}/dictionaries/mikrotik.dictionary`
@@ -59,7 +59,7 @@ describe('RadiusServer', function() {
       }).to.throw(/argument VENDOR_ID/);
     });
 
-    server = new RadiusServer(
+    server = new tephra(
       'c33kr1t',
       1812, 1813, 1814,
       `${__dirname}/dictionaries/mikrotik.dictionary`,
@@ -81,7 +81,7 @@ describe('RadiusServer', function() {
     var server;
 
     beforeEach(function(done) {
-      server = new RadiusServer(
+      server = new tephra(
         'c33kr1t',
         1812, 1813, 1814,
         `${__dirname}/dictionaries/mikrotik.dictionary`,
@@ -91,8 +91,8 @@ describe('RadiusServer', function() {
     });
 
     afterEach(function(done) {
-      server.unbind(done);
-    });
+      server.unbind(done)
+    })
 
     it('should handle invalid auth request packets gracefully', function(done) {
       server.on('error#decode#auth', done.bind(done, null));
@@ -109,28 +109,30 @@ describe('RadiusServer', function() {
       send('acct', packets.acct.mangled);
     });
 
-    it('should emit Accounting-Request-Accounting-On object on receiving packet', function(done) {
-      server.on('Accounting-Request-Accounting-On', done.bind(done, null));
-      send('acct', packets.acct.healthy);
-    });
-
-    it('should send a response correctly for accounting-requests', function(done) {
-      server.on('Accounting-Request-Accounting-On', function(request, rinfo) {
-        server.respond('acct', request, 'Accounting-Response', rinfo, [], [], done);
-      });
-      send('acct', packets.acct.healthy);
-    });
-
-    it('should send a response correctly for accounting interim packets', function(done) {
+    it('should send a response correctly for accounting packets', function(done) {
       server.on('Accounting-Request-Interim-Update', function(request, rinfo) {
         server.respond('acct', request, 'Accounting-Response', rinfo, [], [], done);
       });
       send('acct', packets.acct.interimUpdate);
     });
 
-    it('should send a response correctly for access-requests', function(done) {
+    it('should send a response correctly for accounting packets using the event handler responder function', function(done) {
+      server.on('Accounting-Request-Interim-Update', function(request, rinfo, respond) {
+        respond([], [], done);
+      });
+      send('acct', packets.acct.interimUpdate);
+    });
+
+    it('should send a response correctly for access-request packets', function(done) {
       server.on('Access-Request', function(request, rinfo) {
         server.respond('auth', request, 'Access-Accept', rinfo, [], [], done);
+      });
+      send('auth', packets.auth.healthy);
+    });
+
+    it('should send a response correctly for access-request packets using the event handler responder function', function(done) {
+      server.on('Access-Request', function(request, rinfo, accept, reject) {
+        accept([], [], done);
       });
       send('auth', packets.auth.healthy);
     });
@@ -150,7 +152,7 @@ describe('RadiusServer', function() {
       expect(server.respond).to.throw(/string argument type/);
     });
 
-    it('#respond yield an error if supplied non-array type', function(done) {
+    it('#respond yield an error if no packet is given', function(done) {
       // type, packet, code, rinfo, attributes, vendorAttributes, onResponded
       server.respond('acct', null, 0, {address: '0.0.0.0', port: 12345}, null, null, function(err) {
         expect(err).to.be.ok;

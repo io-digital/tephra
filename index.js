@@ -1,52 +1,29 @@
 
 'use strict';
 
-function onMessage(type, message, rinfo) {
-  try {
-    var decoded = this.RADIUS.decode({
-      packet: message,
-      secret: this.SHARED_SECRET
-    });
-    var resolvedType = (
-      decoded.code === 'Accounting-Request' ?
-      `${decoded.code}-${decoded.attributes['Acct-Status-Type']}` :
-      decoded.code
-    );
-    return this.emit(resolvedType, decoded, rinfo);
-  } catch (ex) {
-    return this.emit(`error#decode#${type}`, ex.message);
-  }
-}
-
 function send(buffer, rinfo, onSent) {
-  this.send(buffer, 0, buffer.length, rinfo.port, rinfo.address, onSent);
+  this.send(
+    buffer, 0, buffer.length,
+    rinfo.port, rinfo.address, onSent
+  );
 }
 
-// fixme
-// -- doesn't care if no vendor id is set
 function marshallAttributes(attributes, vendorAttributes) {
-  if (!(Array.isArray(attributes) && Array.isArray(vendorAttributes))) {
-    throw new Error('Missing required arrays attributes and vendorAttributes');
+  var attrs = [];
+  if (Array.isArray(attributes) && attributes.length) {
+    attrs = attrs.concat(attributes);
   }
-  return [attributes.concat(['Vendor-Specific', this.VENDOR_ID, vendorAttributes])];
-
-  // todo
-  // -- ensure this is functionally equivalent and that
-  // the guards work
-  // return [
-  //   (Array.isArray(attributes) ? attributes : []).concat(
-  //     this.VENDOR_ID && Array.isArray(vendorAttributes) ?
-  //     ['Vendor-Specific', this.VENDOR_ID, vendorAttributes] : []
-  //   )
-  // ];
+  if (this.VENDOR_ID && Array.isArray(vendorAttributes) && vendorAttributes.length) {
+    attrs.push(['Vendor-Specific', this.VENDOR_ID, vendorAttributes]);
+  }
+  return attrs;
 }
 
 const EventEmitter = require('events');
 const dgram = require('dgram');
-const path = require('path');
-const fs = require('fs');
 
-module.exports = (class RadiusServer extends EventEmitter {
+module.exports = (class extends EventEmitter {
+
   constructor(
     SHARED_SECRET,
     AUTH_PORT,
@@ -78,36 +55,66 @@ module.exports = (class RadiusServer extends EventEmitter {
 
     this.SOCKETS = {
       AUTH: dgram.createSocket('udp4', (message, rinfo) => {
-        onMessage.call(this, 'auth', message, rinfo);
+        try {
+          var decoded = this.RADIUS.decode({
+            packet: message,
+            secret: this.SHARED_SECRET
+          });
+          return this.emit(
+            decoded.code, decoded, rinfo,
+            (attributes, vendorAttributes, onAccepted) => {
+              this.respond(
+                'auth', decoded, 'Access-Accept',
+                rinfo, attributes, vendorAttributes,
+                onAccepted || function() {}
+              );
+            }, (attributes, vendorAttributes, onRejected) => {
+              this.respond(
+                'auth', decoded, 'Access-Reject',
+                rinfo, attributes, vendorAttributes,
+                onRejected || function() {}
+              );
+            }
+          );
+        } catch (ex) {
+          return this.emit(`error#decode#auth`, ex.message);
+        }
       }),
       ACCT: dgram.createSocket('udp4', (message, rinfo) => {
-        onMessage.call(this, 'acct', message, rinfo);
+        try {
+          var decoded = this.RADIUS.decode({
+            packet: message,
+            secret: this.SHARED_SECRET
+          });
+          return this.emit((
+            `${decoded.code}-` +
+            decoded.attributes['Acct-Status-Type']
+          ), decoded, rinfo, (attributes, vendorAttributes, onResponded) => {
+            this.respond('acct', decoded, 'Accounting-Response', rinfo, attributes, vendorAttributes, onResponded)
+          });
+        } catch (ex) {
+          return this.emit(`error#decode#acct`, ex.message);
+        }
       }),
       COA: dgram.createSocket('udp4', (message, rinfo) => {
-        onMessage.call(this, 'coa', message, rinfo);
+        try {
+          var decoded = this.RADIUS.decode({
+            packet: message,
+            secret: this.SHARED_SECRET
+          });
+          return this.emit(decoded.code, decoded, rinfo);
+        } catch (ex) {
+          return this.emit(`error#decode#coa`, ex.message);
+        }
       })
-      // todo
-      // -- ensure this is functionally equivalent
-      // AUTH: dgram.createSocket('udp4', function() {
-      //   onMessage.apply(this, ['auth'].concat(arguments));
-      // }.bind(this)),
-      // ACCT: dgram.createSocket('udp4', function() {
-      //   onMessage.apply(this, ['acct'].concat(arguments));
-      // }.bind(this)),
-      // COA: dgram.createSocket('udp4', function() {
-      //   onMessage.call(this, ['coa'].concat(arguments));
-      // }.bind(this))
     };
   }
 
   bind(onBound) {
-    this.SOCKETS.AUTH.bind(this.AUTH_PORT, () => {
-      this.SOCKETS.ACCT.bind(this.ACCT_PORT, () => {
-        this.SOCKETS.COA.bind(this.COA_PORT, () => {
-          return typeof onBound === 'function' ? onBound() : this;
-        });
-      });
-    });
+    this.SOCKETS.AUTH.bind(this.AUTH_PORT);
+    this.SOCKETS.ACCT.bind(this.ACCT_PORT);
+    this.SOCKETS.COA.bind(this.COA_PORT);
+    return typeof onBound === 'function' ? onBound() : this;
   }
 
   unbind(onUnbound) {
@@ -146,10 +153,10 @@ module.exports = (class RadiusServer extends EventEmitter {
     } else {
       try {
         const encoded = this.RADIUS.encode_response({
-          attributes: marshallAttributes.call(this, attributes, vendorAttributes),
-          secret: this.SHARED_SECRET,
           packet: packet,
-          code: code
+          code: code,
+          attributes: marshallAttributes.call(this, attributes, vendorAttributes),
+          secret: this.SHARED_SECRET
         });
         return send.call(
           this.SOCKETS[type.toUpperCase()],
@@ -161,5 +168,12 @@ module.exports = (class RadiusServer extends EventEmitter {
         return onResponded(ex);
       }
     }
+  }
+
+  disconnect(rinfo, attributes, vendorAttributes, onSent) {
+    this.send('coa', 'Disconnect-Request', {
+      address: rinfo.address,
+      port: rinfo.port
+    }, attributes, vendorAttributes, onSent);
   }
 });
