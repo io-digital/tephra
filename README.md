@@ -28,3 +28,7 @@ server.on('Access-Request', function(packet, rinfo, accept, reject) {
 ```
 
 more examples can be found in `bin/`
+
+##### notes
+
+for some weird reason, travis builds fail if we don't include `to-iso-string` as a dependency...
