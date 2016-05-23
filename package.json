@@ -27,7 +27,7 @@
     "email": "ant@io.co.za"
   },
   "engines": {
-    "node": ">=4.2.0"
+    "node": ">=4.0.0"
   },
   "os": [
     "!win32"
