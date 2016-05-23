@@ -3,7 +3,7 @@
 
 > tephra, n: rock fragments and particles ejected by a volcanic eruption
 
-an evented [radius](https://en.wikipedia.org/wiki/RADIUS) server supporting node >=4.2.0
+an evented [radius](https://en.wikipedia.org/wiki/RADIUS) server supporting node >=4.0.0
 
 ##### example
 
