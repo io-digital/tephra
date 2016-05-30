@@ -3,32 +3,61 @@
 
 > tephra, n: rock fragments and particles ejected by a volcanic eruption
 
-an evented [radius](https://en.wikipedia.org/wiki/RADIUS) server supporting node >=4.0.0
+an evented [radius](https://en.wikipedia.org/wiki/RADIUS) server based on [node-radius](https://github.com/retailnext/node-radius) supporting node >=4.0.0
 
 ##### example
 
 ```javascript
-var tephra = require('tephra');
-var server = new tephra('shared_secret', 1812, 1813, 1814);
 var users = {'joe-bloggs': 'secret-password'};
+var tephra = require('tephra');
+var server = new tephra(
+  'shared_secret',
+  1812, // authentication port
+  1813, // accounting port
+  1814 // change of authorisation port
+);
 
 server.on('Access-Request', function(packet, rinfo, accept, reject) {
   var username = packet.attributes['User-Name'],
       password = packet.attributes['User-Password'];
   if (username in users && users[username] === password) {
-    accept([], [], console.log.bind(console));
+    accept(
+      [/* attributes */],
+      [/* vendor attributes */],
+      console.log.bind(console)
+    );
   } else {
-    reject([], [], console.log.bind(console));
+    reject(
+      [/* attributes */],
+      [/* vendor attributes */],
+      console.log.bind(console)
+    );
   }
+}).on('Accounting-Request', function(packet, rinfo, respond) {
+  // catch all accounting-requests
+  respond(
+    [/* attributes */],
+    [/* vendor attributes */],
+    console.log.bind(console)
+  );
 }).on('Accounting-Request-Start', function(packet, rinfo, respond) {
-  respond([], [], console.log.bind(console))
+  // or just catch specific accounting-request status types...
+  respond(
+    [/* attributes */],
+    [/* vendor attributes */],
+    console.log.bind(console)
+  );
 }).on('Accounting-Request-Interim-Update', function(packet, rinfo, respond) {
-  respond([], [], console.log.bind(console))
+  respond(
+    [/* attributes */],
+    [/* vendor attributes */],
+    console.log.bind(console)
+  );
+}).on('Accounting-Request-Stop', function(packet, rinfo, respond) {
+  respond(
+    [/* attributes */],
+    [/* vendor attributes */],
+    console.log.bind(console)
+  );
 }).bind();
 ```
-
-more examples can be found in `bin/`
-
-##### notes
-
-for some weird reason, travis builds fail if we don't include `to-iso-string` as a dependency...
