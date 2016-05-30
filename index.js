@@ -86,6 +86,11 @@ module.exports = (class extends EventEmitter {
             packet: message,
             secret: this.SHARED_SECRET
           });
+          // emit accounting-request
+          this.emit(decoded.code, decoded, rinfo, (attributes, vendorAttributes, onResponded) => {
+            this.respond('acct', decoded, 'Accounting-Response', rinfo, attributes, vendorAttributes, onResponded)
+          })
+          // as well as accounting-request-{{status-type}}
           return this.emit((
             `${decoded.code}-` +
             decoded.attributes['Acct-Status-Type']
