@@ -29,9 +29,6 @@
   "engines": {
     "node": ">=4.0.0"
   },
-  "os": [
-    "!win32"
-  ],
   "license": "BSD-3-Clause",
   "devDependencies": {
     "chai": "^3.5.0",
