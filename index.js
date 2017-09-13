@@ -48,6 +48,7 @@ module.exports = (class extends EventEmitter {
     this.ACCT_PORT = ACCT_PORT;
     this.COA_PORT = COA_PORT;
 
+    // we have to check these again because they are optional
     if (VENDOR_DICTIONARY_PATH && VENDOR_ID) {
       this.RADIUS.add_dictionary(VENDOR_DICTIONARY_PATH);
       this.VENDOR_ID = VENDOR_ID;
