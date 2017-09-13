@@ -1,26 +1,30 @@
 
-'use strict';
+'use strict'
 
-function send(buffer, rinfo, onSent) {
+function send(buffer, rinfo, on_sent) {
   this.send(
-    buffer, 0, buffer.length,
-    rinfo.port, rinfo.address, onSent
-  );
+    buffer,
+    0,
+    buffer.length,
+    rinfo.port,
+    rinfo.address,
+    on_sent
+  )
 }
 
-function marshallAttributes(attributes, vendorAttributes) {
-  var attrs = [];
+function marshall_attributes(attributes, vendor_attributes) {
+  var marshalled = []
   if (Array.isArray(attributes) && attributes.length) {
-    attrs = attrs.concat(attributes);
+    marshalled = marshalled.concat(attributes)
   }
-  if (this.VENDOR_ID && Array.isArray(vendorAttributes) && vendorAttributes.length) {
-    attrs.push(['Vendor-Specific', this.VENDOR_ID, vendorAttributes]);
+  if (this.VENDOR_ID && Array.isArray(vendor_attributes) && vendor_attributes.length) {
+    marshalled.push(['Vendor-Specific', this.VENDOR_ID, vendor_attributes])
   }
-  return attrs;
+  return marshalled
 }
 
-const EventEmitter = require('events');
-const dgram = require('dgram');
+var EventEmitter = require('events')
+var dgram = require('dgram')
 
 module.exports = (class extends EventEmitter {
 
@@ -32,154 +36,211 @@ module.exports = (class extends EventEmitter {
     VENDOR_DICTIONARY_PATH,
     VENDOR_ID
   ) {
-    super();
+    super()
 
     if (!(SHARED_SECRET && AUTH_PORT && ACCT_PORT && COA_PORT)) {
-      throw new Error('Missing SHARED_SECRET, AUTH_PORT, ACCT_PORT or COA_PORT arguments');
+      throw new Error('Missing SHARED_SECRET, AUTH_PORT, ACCT_PORT or COA_PORT arguments')
     }
 
     if (VENDOR_DICTIONARY_PATH && !VENDOR_ID) {
-      throw new Error('Missing required argument VENDOR_ID');
+      throw new Error('Missing required argument VENDOR_ID')
     }
 
-    this.RADIUS = require('radius');
-    this.SHARED_SECRET = SHARED_SECRET;
-    this.AUTH_PORT = AUTH_PORT;
-    this.ACCT_PORT = ACCT_PORT;
-    this.COA_PORT = COA_PORT;
+    this.RADIUS = require('radius')
+    this.SHARED_SECRET = SHARED_SECRET
+    this.AUTH_PORT = AUTH_PORT
+    this.ACCT_PORT = ACCT_PORT
+    this.COA_PORT = COA_PORT
 
     // we have to check these again because they are optional
     if (VENDOR_DICTIONARY_PATH && VENDOR_ID) {
-      this.RADIUS.add_dictionary(VENDOR_DICTIONARY_PATH);
-      this.VENDOR_ID = VENDOR_ID;
+      this.RADIUS.add_dictionary(VENDOR_DICTIONARY_PATH)
+      this.VENDOR_ID = VENDOR_ID
     }
 
     this.SOCKETS = {
-      AUTH: dgram.createSocket('udp4', (message, rinfo) => {
+      AUTH: dgram.createSocket('udp4', function(message, rinfo) {
         try {
           var decoded = this.RADIUS.decode({
             packet: message,
             secret: this.SHARED_SECRET
-          });
-          return this.emit(
-            decoded.code, decoded, rinfo,
-            (attributes, vendorAttributes, onAccepted) => {
-              this.respond(
-                'auth', decoded, 'Access-Accept',
-                rinfo, attributes, vendorAttributes,
-                onAccepted || function() {}
-              );
-            }, (attributes, vendorAttributes, onRejected) => {
-              this.respond(
-                'auth', decoded, 'Access-Reject',
-                rinfo, attributes, vendorAttributes,
-                onRejected || function() {}
-              );
-            }
-          );
-        } catch (ex) {
-          return this.emit(`error#decode#auth`, ex.message);
-        }
-      }),
-      ACCT: dgram.createSocket('udp4', (message, rinfo) => {
-        try {
-          var decoded = this.RADIUS.decode({
-            packet: message,
-            secret: this.SHARED_SECRET
-          });
-          // emit accounting-request
-          this.emit(decoded.code, decoded, rinfo, (attributes, vendorAttributes, onResponded) => {
-            this.respond('acct', decoded, 'Accounting-Response', rinfo, attributes, vendorAttributes, onResponded)
           })
-          // as well as accounting-request-{{status-type}}
-          return this.emit((
-            `${decoded.code}-` +
-            decoded.attributes['Acct-Status-Type']
-          ), decoded, rinfo, (attributes, vendorAttributes, onResponded) => {
-            this.respond('acct', decoded, 'Accounting-Response', rinfo, attributes, vendorAttributes, onResponded)
-          });
-        } catch (ex) {
-          return this.emit(`error#decode#acct`, ex.message);
+        } catch (err) {
+          this.emit('error#decode#auth', err.message)
+          return
         }
-      }),
-      COA: dgram.createSocket('udp4', (message, rinfo) => {
+        this.emit(
+          decoded.code,
+          decoded,
+          rinfo,
+          function access_accept(attributes, vendor_attributes, on_accepted) {
+            this.respond(
+              'auth',
+              decoded,
+              'Access-Accept',
+              rinfo,
+              attributes,
+              vendor_attributes,
+              on_accepted || function() {}
+            )
+          }.bind(this),
+          function access_reject(attributes, vendor_attributes, on_rejected) {
+            this.respond(
+              'auth',
+              decoded,
+              'Access-Reject',
+              rinfo,
+              attributes,
+              vendor_attributes,
+              on_rejected || function() {}
+            )
+          }.bind(this)
+        )
+      }.bind(this)),
+      ACCT: dgram.createSocket('udp4', function(message, rinfo) {
         try {
           var decoded = this.RADIUS.decode({
             packet: message,
             secret: this.SHARED_SECRET
-          });
-          return this.emit(decoded.code, decoded, rinfo);
-        } catch (ex) {
-          return this.emit(`error#decode#coa`, ex.message);
+          })
+        } catch (err) {
+          this.emit('error#decode#acct', err.message)
+          return
         }
+        // emit accounting-request
+        this.emit(
+          decoded.code,
+          decoded,
+          rinfo,
+          function accounting_respond(attributes, vendor_attributes, on_responded) {
+            this.respond(
+              'acct',
+              decoded,
+              'Accounting-Response',
+              rinfo,
+              attributes,
+              vendor_attributes,
+              on_responded
+            )
+          }.bind(this)
+        )
+        // as well as accounting-request-{{status-type}}
+        this.emit(
+          `${decoded.code}-${decoded.attributes['Acct-Status-Type']}`,
+          decoded,
+          rinfo,
+          function accounting_respond(attributes, vendor_attributes, on_responded) {
+            this.respond(
+              'acct',
+              decoded,
+              'Accounting-Response',
+              rinfo,
+              attributes,
+              vendor_attributes,
+              on_responded
+            )
+          }.bind(this)
+        )
+      }.bind(this)),
+      COA: dgram.createSocket('udp4', function(message, rinfo) {
+        try {
+          var decoded = this.RADIUS.decode({
+            packet: message,
+            secret: this.SHARED_SECRET
+          })
+        } catch (err) {
+          this.emit('error#decode#coa', err.message)
+          return
+        }
+        this.emit(decoded.code, decoded, rinfo)
+      }.bind(this))
+    }
+  }
+
+  bind(on_bound) {
+    this.SOCKETS.AUTH.bind(this.AUTH_PORT)
+    this.SOCKETS.ACCT.bind(this.ACCT_PORT)
+    this.SOCKETS.COA.bind(this.COA_PORT)
+    return typeof on_bound === 'function' ? on_bound() : this
+  }
+
+  unbind(on_unbound) {
+    this.SOCKETS.AUTH.close()
+    this.SOCKETS.ACCT.close()
+    this.SOCKETS.COA.close()
+    this.removeAllListeners()
+    return typeof on_unbound === 'function' ? on_unbound() : this
+  }
+
+  send(
+    type,
+    code,
+    rinfo,
+    attributes,
+    vendor_attributes,
+    on_sent
+  ) {
+    if (typeof type !== 'string') {
+      throw new Error('Missing required string argument type')
+    }
+    try {
+      var encoded = this.RADIUS.encode({
+        attributes: marshall_attributes.call(this, attributes, vendor_attributes),
+        secret: this.SHARED_SECRET,
+        code: code
       })
-    };
-  }
-
-  bind(onBound) {
-    this.SOCKETS.AUTH.bind(this.AUTH_PORT);
-    this.SOCKETS.ACCT.bind(this.ACCT_PORT);
-    this.SOCKETS.COA.bind(this.COA_PORT);
-    return typeof onBound === 'function' ? onBound() : this;
-  }
-
-  unbind(onUnbound) {
-    this.SOCKETS.AUTH.close();
-    this.SOCKETS.ACCT.close();
-    this.SOCKETS.COA.close();
-    this.removeAllListeners();
-    return typeof onUnbound === 'function' ? onUnbound() : this;
-  }
-
-  send(type, code, rinfo, attributes, vendorAttributes, onSent) {
-    if (typeof type !== 'string') {
-      throw new Error('Missing required string argument type');
-    } else {
-      try {
-        const encoded = this.RADIUS.encode({
-          attributes: marshallAttributes.call(this, attributes, vendorAttributes),
-          secret: this.SHARED_SECRET,
-          code: code
-        });
-        return send.call(
-          this.SOCKETS[type.toUpperCase()],
-          encoded,
-          rinfo,
-          onSent
-        );
-      } catch (ex) {
-        return onSent(ex);
-      }
+    } catch (err) {
+      on_sent(err)
+      return
     }
+    send.call(
+      this.SOCKETS[type.toUpperCase()],
+      encoded,
+      rinfo,
+      on_sent
+    )
   }
 
-  respond(type, packet, code, rinfo, attributes, vendorAttributes, onResponded) {
+  respond(
+    type,
+    packet,
+    code,
+    rinfo,
+    attributes,
+    vendor_attributes,
+    on_responded
+  ) {
     if (typeof type !== 'string') {
-      throw new Error('Missing required string argument type');
-    } else {
-      try {
-        const encoded = this.RADIUS.encode_response({
-          packet: packet,
-          code: code,
-          attributes: marshallAttributes.call(this, attributes, vendorAttributes),
-          secret: this.SHARED_SECRET
-        });
-        return send.call(
-          this.SOCKETS[type.toUpperCase()],
-          encoded,
-          rinfo,
-          onResponded
-        );
-      } catch (ex) {
-        return onResponded(ex);
-      }
+      throw new Error('Missing required string argument type')
     }
+    try {
+      var encoded = this.RADIUS.encode_response({
+        packet: packet,
+        code: code,
+        attributes: marshall_attributes.call(this, attributes, vendor_attributes),
+        secret: this.SHARED_SECRET
+      })
+    } catch (err) {
+      on_responded(err)
+      return
+    }
+    send.call(
+      this.SOCKETS[type.toUpperCase()],
+      encoded,
+      rinfo,
+      on_responded
+    )
   }
 
-  disconnect(rinfo, attributes, vendorAttributes, onSent) {
+  disconnect(
+    rinfo,
+    attributes,
+    vendor_attributes,
+    on_sent
+  ) {
     this.send('coa', 'Disconnect-Request', {
       address: rinfo.address,
       port: rinfo.port
-    }, attributes, vendorAttributes, onSent);
+    }, attributes, vendor_attributes, on_sent)
   }
-});
+})
