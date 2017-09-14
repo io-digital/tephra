@@ -23,6 +23,42 @@ function marshall_attributes(attributes, vendor_attributes) {
   return marshalled
 }
 
+function accounting_respond(decoded, rinfo, attributes, vendor_attributes, on_responded) {
+  this.respond(
+    'acct',
+    decoded,
+    'Accounting-Response',
+    rinfo,
+    attributes,
+    vendor_attributes,
+    on_responded
+  )
+}
+
+function access_reject(decoded, rinfo, attributes, vendor_attributes, on_rejected) {
+  this.respond(
+    'auth',
+    decoded,
+    'Access-Reject',
+    rinfo,
+    attributes,
+    vendor_attributes,
+    on_rejected || function() {}
+  )
+}
+
+function access_accept(decoded, rinfo, attributes, vendor_attributes, on_accepted) {
+  this.respond(
+    'auth',
+    decoded,
+    'Access-Accept',
+    rinfo,
+    attributes,
+    vendor_attributes,
+    on_accepted || function() {}
+  )
+}
+
 var EventEmitter = require('events')
 var dgram = require('dgram')
 
@@ -73,28 +109,8 @@ module.exports = (class extends EventEmitter {
           decoded.code,
           decoded,
           rinfo,
-          function access_accept(attributes, vendor_attributes, on_accepted) {
-            this.respond(
-              'auth',
-              decoded,
-              'Access-Accept',
-              rinfo,
-              attributes,
-              vendor_attributes,
-              on_accepted || function() {}
-            )
-          }.bind(this),
-          function access_reject(attributes, vendor_attributes, on_rejected) {
-            this.respond(
-              'auth',
-              decoded,
-              'Access-Reject',
-              rinfo,
-              attributes,
-              vendor_attributes,
-              on_rejected || function() {}
-            )
-          }.bind(this)
+          access_accept.bind(this, decoded, rinfo),
+          access_reject.bind(this, decoded, rinfo)
         )
       }.bind(this)),
       ACCT: dgram.createSocket('udp4', function(message, rinfo) {
@@ -112,34 +128,14 @@ module.exports = (class extends EventEmitter {
           decoded.code,
           decoded,
           rinfo,
-          function accounting_respond(attributes, vendor_attributes, on_responded) {
-            this.respond(
-              'acct',
-              decoded,
-              'Accounting-Response',
-              rinfo,
-              attributes,
-              vendor_attributes,
-              on_responded
-            )
-          }.bind(this)
+          accounting_respond.bind(this, decoded, rinfo)
         )
         // as well as accounting-request-{{status-type}}
         this.emit(
           `${decoded.code}-${decoded.attributes['Acct-Status-Type']}`,
           decoded,
           rinfo,
-          function accounting_respond(attributes, vendor_attributes, on_responded) {
-            this.respond(
-              'acct',
-              decoded,
-              'Accounting-Response',
-              rinfo,
-              attributes,
-              vendor_attributes,
-              on_responded
-            )
-          }.bind(this)
+          accounting_respond.bind(this, decoded, rinfo)
         )
       }.bind(this)),
       COA: dgram.createSocket('udp4', function(message, rinfo) {
