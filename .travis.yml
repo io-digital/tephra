@@ -1,11 +1,9 @@
 language: node_js
 node_js:
-  - "6.1"
-  - "6"
-  - "5.1"
-  - "4.2"
-  - "4.1"
-  - "4.0"
+  - lts/*
+  - 8
+  - 6
+  - 4
 env:
   - CODECLIMATE_REPO_TOKEN=b83c1c55a2d69a66cff5ad30be52cf23b6a8d44401b64f08eec9a2939cf3692b
 after_script:
