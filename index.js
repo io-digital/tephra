@@ -3,7 +3,7 @@
 
 function decode(message, on_error) {
   try {
-    return this.RADIUS.decode({
+    return radius.decode({
       packet: message,
       secret: this.SHARED_SECRET
     })
@@ -73,6 +73,8 @@ function access_accept(decoded, rinfo, attributes, vendor_attributes, on_accepte
 var EventEmitter = require('events')
 var dgram = require('dgram')
 
+var radius = require('radius')
+
 module.exports = (class extends EventEmitter {
 
   constructor(
@@ -93,7 +95,6 @@ module.exports = (class extends EventEmitter {
       throw new Error('Missing required argument VENDOR_ID')
     }
 
-    this.RADIUS = require('radius')
     this.SHARED_SECRET = SHARED_SECRET
     this.AUTH_PORT = AUTH_PORT
     this.ACCT_PORT = ACCT_PORT
@@ -101,7 +102,7 @@ module.exports = (class extends EventEmitter {
 
     // we have to check these again because they are optional
     if (VENDOR_DICTIONARY_PATH && VENDOR_ID) {
-      this.RADIUS.add_dictionary(VENDOR_DICTIONARY_PATH)
+      radius.add_dictionary(VENDOR_DICTIONARY_PATH)
       this.VENDOR_ID = VENDOR_ID
     }
 
@@ -170,7 +171,7 @@ module.exports = (class extends EventEmitter {
       throw new Error('Missing required string argument type')
     }
     try {
-      var encoded = this.RADIUS.encode({
+      var encoded = radius.encode({
         attributes: marshall_attributes.call(this, attributes, vendor_attributes),
         secret: this.SHARED_SECRET,
         code: code
@@ -200,7 +201,7 @@ module.exports = (class extends EventEmitter {
       throw new Error('Missing required string argument type')
     }
     try {
-      var encoded = this.RADIUS.encode_response({
+      var encoded = radius.encode_response({
         packet: packet,
         code: code,
         attributes: marshall_attributes.call(this, attributes, vendor_attributes),
