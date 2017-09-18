@@ -1,6 +1,17 @@
 
 'use strict'
 
+function decode(message, on_error) {
+  try {
+    return this.RADIUS.decode({
+      packet: message,
+      secret: this.SHARED_SECRET
+    })
+  } catch (err) {
+    on_error(err.message)
+  }
+}
+
 function send(buffer, rinfo, on_sent) {
   this.send(
     buffer,
@@ -96,15 +107,8 @@ module.exports = (class extends EventEmitter {
 
     this.SOCKETS = {
       AUTH: dgram.createSocket('udp4', function(message, rinfo) {
-        try {
-          var decoded = this.RADIUS.decode({
-            packet: message,
-            secret: this.SHARED_SECRET
-          })
-        } catch (err) {
-          this.emit('error#decode#auth', err.message)
-          return
-        }
+        var decoded = decode.call(this, message, this.emit.bind(this, 'error#decode#auth'))
+        if (!decoded) return
         this.emit(
           decoded.code,
           decoded,
@@ -114,15 +118,8 @@ module.exports = (class extends EventEmitter {
         )
       }.bind(this)),
       ACCT: dgram.createSocket('udp4', function(message, rinfo) {
-        try {
-          var decoded = this.RADIUS.decode({
-            packet: message,
-            secret: this.SHARED_SECRET
-          })
-        } catch (err) {
-          this.emit('error#decode#acct', err.message)
-          return
-        }
+        var decoded = decode.call(this, message, this.emit.bind(this, 'error#decode#acct'))
+        if (!decoded) return
         // emit accounting-request
         this.emit(
           decoded.code,
@@ -139,15 +136,8 @@ module.exports = (class extends EventEmitter {
         )
       }.bind(this)),
       COA: dgram.createSocket('udp4', function(message, rinfo) {
-        try {
-          var decoded = this.RADIUS.decode({
-            packet: message,
-            secret: this.SHARED_SECRET
-          })
-        } catch (err) {
-          this.emit('error#decode#coa', err.message)
-          return
-        }
+        var decoded = decode.call(this, message, this.emit.bind(this, 'error#decode#coa'))
+        if (!decoded) return
         this.emit(decoded.code, decoded, rinfo)
       }.bind(this))
     }
