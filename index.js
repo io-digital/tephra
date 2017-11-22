@@ -1,15 +1,21 @@
 
 'use strict'
 
-function decode(message, on_error) {
+function decode(message, guard, on_error) {
   try {
-    return radius.decode({
+    var decoded = radius.decode({
       packet: message,
       secret: this.SHARED_SECRET
     })
   } catch (err) {
     on_error(err.message)
+    return
   }
+  if (!guard(decoded)) {
+    on_error('packed decode guard failed')
+    return
+  }
+  return decoded
 }
 
 function send(buffer, rinfo, on_sent) {
@@ -34,7 +40,13 @@ function marshall_attributes(attributes, vendor_attributes) {
   return marshalled
 }
 
-function accounting_respond(decoded, rinfo, attributes, vendor_attributes, on_responded) {
+function accounting_respond(
+  decoded,
+  rinfo,
+  attributes,
+  vendor_attributes,
+  on_responded
+) {
   this.respond(
     'acct',
     decoded,
@@ -46,7 +58,13 @@ function accounting_respond(decoded, rinfo, attributes, vendor_attributes, on_re
   )
 }
 
-function access_reject(decoded, rinfo, attributes, vendor_attributes, on_rejected) {
+function access_reject(
+  decoded,
+  rinfo,
+  attributes,
+  vendor_attributes,
+  on_rejected
+) {
   this.respond(
     'auth',
     decoded,
@@ -58,7 +76,13 @@ function access_reject(decoded, rinfo, attributes, vendor_attributes, on_rejecte
   )
 }
 
-function access_accept(decoded, rinfo, attributes, vendor_attributes, on_accepted) {
+function access_accept(
+  decoded,
+  rinfo,
+  attributes,
+  vendor_attributes,
+  on_accepted
+) {
   this.respond(
     'auth',
     decoded,
@@ -108,8 +132,18 @@ module.exports = (class extends EventEmitter {
 
     this.SOCKETS = {
       AUTH: dgram.createSocket('udp4', function(message, rinfo) {
-        var decoded = decode.call(this, message, this.emit.bind(this, 'error#decode#auth'))
-        if (!decoded) return
+        var decoded = decode.call(
+          this,
+          message,
+          function(packet) {
+            return packet.code === 'Access-Request'
+          },
+          this.emit.bind(this, 'error#decode#auth')
+        )
+        if (!decoded) {
+          // seems sensible to default to access-reject here
+          return access_reject.call(this, decoded, rinfo)
+        }
         this.emit(
           decoded.code,
           decoded,
@@ -119,7 +153,14 @@ module.exports = (class extends EventEmitter {
         )
       }.bind(this)),
       ACCT: dgram.createSocket('udp4', function(message, rinfo) {
-        var decoded = decode.call(this, message, this.emit.bind(this, 'error#decode#acct'))
+        var decoded = decode.call(
+          this,
+          message,
+          function(packet) {
+            return packet.code === 'Accounting-Request'
+          },
+          this.emit.bind(this, 'error#decode#acct')
+        )
         if (!decoded) return
         // emit accounting-request
         this.emit(
@@ -130,14 +171,26 @@ module.exports = (class extends EventEmitter {
         )
         // as well as accounting-request-{{status-type}}
         this.emit(
-          `${decoded.code}-${decoded.attributes['Acct-Status-Type']}`,
+          `${decoded.code}-${decoded.attributes['Acct-Status-Type'] || 'unknown'}`,
           decoded,
           rinfo,
           accounting_respond.bind(this, decoded, rinfo)
         )
       }.bind(this)),
       COA: dgram.createSocket('udp4', function(message, rinfo) {
-        var decoded = decode.call(this, message, this.emit.bind(this, 'error#decode#coa'))
+        var decoded = decode.call(
+          this,
+          message,
+          function(packet) {
+            return [
+              'Disconnect-ACK',
+              'Disconnect-NAK',
+              'CoA-ACK',
+              'CoA-NAK'
+            ].indexOf(packet.code) !== -1
+          },
+          this.emit.bind(this, 'error#decode#coa')
+        )
         if (!decoded) return
         this.emit(decoded.code, decoded, rinfo)
       }.bind(this))

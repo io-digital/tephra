@@ -4,15 +4,16 @@
 // ensures this library doesn't pass messages to itself
 function send(type, packet, done) {
   var socket = dgram.createSocket('udp4')
-  socket.bind(9000, socket.send.bind(
-    socket,
-    packet,
-    0,
-    packet.length,
-    type === 'acct' ? 1813 : 1812,
-    '0.0.0.0',
-    socket.close.bind(socket, done || function() {})
-  ))
+  socket.bind(function() {
+    socket.send(
+      packet,
+      0,
+      packet.length,
+      type === 'acct' ? 1813 : 1812,
+      '0.0.0.0',
+      socket.close.bind(socket, done || function() {})
+    )
+  })
 }
 
 var readFileSync = require('fs').readFileSync
@@ -105,6 +106,11 @@ describe('tephra', function() {
       send('auth', packets.auth.mangled)
     })
 
+    it('should reject irrelevant packet types directed at the auth socket', function(done) {
+      server.on('error#decode#auth', done.bind(done, null))
+      send('auth', packets.acct.healthy)
+    })
+
     it('should emit Access-Request object on receiving packet', function(done) {
       server.on('Access-Request', done.bind(done, null))
       send('auth', packets.auth.healthy)
@@ -113,6 +119,11 @@ describe('tephra', function() {
     it('should handle invalid acct request packets gracefully', function(done) {
       server.on('error#decode#acct', done.bind(done, null))
       send('acct', packets.acct.mangled)
+    })
+
+    it('should reject irrelevant packet types directed at the acct socket', function(done) {
+      server.on('error#decode#acct', done.bind(done, null))
+      send('acct', packets.auth.healthy)
     })
 
     it('should send a response correctly for accounting packets', function(done) {
@@ -130,7 +141,7 @@ describe('tephra', function() {
     })
 
     it('should send a response correctly for access-request packets', function(done) {
-      server.on('Access-Request', function(request, rinfo) {
+      server.on('Access-Request', function(request, rinfo, accept, reject) {
         server.respond('auth', request, 'Access-Accept', rinfo, [], [], done)
       })
       send('auth', packets.auth.healthy)
@@ -155,8 +166,7 @@ describe('tephra', function() {
         null,
         null,
         function(err) {
-          expect(err).to.be.ok
-          done()
+          err && done()
         }
       )
     })
@@ -174,8 +184,7 @@ describe('tephra', function() {
         null,
         null,
         function(err) {
-          expect(err).to.be.ok
-          done()
+          err && done()
         }
       )
     })
