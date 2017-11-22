@@ -3,7 +3,7 @@
 
 > tephra, n: rock fragments and particles ejected by a volcanic eruption
 
-an evented [radius](https://en.wikipedia.org/wiki/RADIUS) server based on [node-radius](https://github.com/retailnext/node-radius) - this is radius for humans!
+an evented [radius](https://en.wikipedia.org/wiki/RADIUS) server based on [node-radius](https://github.com/retailnext/node-radius) - now it's easier than ever to write a radius server that isn't standards-compliant! ;)
 
 ## example
 
@@ -60,3 +60,7 @@ server.on('Access-Request', function(packet, rinfo, accept, reject) {
   )
 }).bind()
 ```
+
+## notes
+
+* since we're supporting all lts versions, we can't use arrow functions (and perhaps some other features, too) until node 4 is out of maintenance period.
