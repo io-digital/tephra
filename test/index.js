@@ -108,6 +108,8 @@ describe('tephra', function() {
 
     it('should reject irrelevant packet types directed at the auth socket', function(done) {
       server.on('error#decode#auth', done.bind(done, null))
+
+      // send an ACCOUNTING packet to the AUTHENTICATION socket
       send('auth', packets.acct.healthy)
     })
 
@@ -123,6 +125,8 @@ describe('tephra', function() {
 
     it('should reject irrelevant packet types directed at the acct socket', function(done) {
       server.on('error#decode#acct', done.bind(done, null))
+
+      // send an AUTHENTICATION packet to the ACCOUNTING socket
       send('acct', packets.auth.healthy)
     })
 
@@ -166,7 +170,9 @@ describe('tephra', function() {
         null,
         null,
         function(err) {
-          err && done()
+          return err ? done() : (
+            done(new Error('assertion failed: expected `err` to be truthy'))
+          )
         }
       )
     })
@@ -184,7 +190,9 @@ describe('tephra', function() {
         null,
         null,
         function(err) {
-          err && done()
+          return err ? done() : (
+            done(new Error('assertion failed: expected `err` to be truthy'))
+          )
         }
       )
     })
