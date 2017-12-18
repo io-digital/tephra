@@ -6,6 +6,13 @@ node_js:
   - 4
 env:
   - CODECLIMATE_REPO_TOKEN=b83c1c55a2d69a66cff5ad30be52cf23b6a8d44401b64f08eec9a2939cf3692b
+before_script:
+  # we're only installing freeradius so we can get
+  # the radclient utility required by the test suite
+  - sudo apt-get install freeradius
+  # which is why we immediately stop the daemon
+  # ensuring we don't get socket conflicts at runtime
+  - sudo service freeradius stop
 after_script:
   - npm test --coverage
   - codeclimate-test-reporter < coverage/lcov.info
