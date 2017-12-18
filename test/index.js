@@ -1,42 +1,45 @@
 
 'use strict'
 
-// ensures this library doesn't pass messages to itself
-function send(type, packet, done) {
-  var socket = dgram.createSocket('udp4')
-  socket.bind(function() {
-    socket.send(
-      packet,
-      0,
-      packet.length,
-      type === 'acct' ? 1813 : 1812,
-      '0.0.0.0',
-      socket.close.bind(socket, done || function() {})
-    )
-  })
+/**
+ * invokes freeradius's radius client with given packet contents
+ * which helps us ensure that our server is as close to
+ * rfc-compliant as possible or at least compatible with
+ * existing radius implementations
+ */
+function radclient(
+  address,
+  packet_type,
+  shared_secret,
+  packet,
+  on_exec
+) {
+  // TODO add options for flooding
+  var cmd = `echo "${packet}" | ./test/radclient -d test/dictionaries -n 1 -x ${address} ${packet_type} ${shared_secret}`
+  try {
+    cp.exec(cmd, function(err, stdout, stderr) {
+      if (err) return on_exec(err)
+      return on_exec()
+    })
+  } catch (e) {
+    return on_exec(e)
+  }
 }
 
-var readFileSync = require('fs').readFileSync
-var join = require('path').join
-var dgram = require('dgram')
+var cp = require('child_process')
 
 var expect = require('chai').expect
 
 var tephra = require('../')
 
-var packets = {
-  auth: {
-    mangled: readFileSync('./test/packets/mikrotik/mangled.auth.packet'),
-    healthy: readFileSync('./test/packets/mikrotik/auth.packet')
-  },
-  acct: {
-    mangled: readFileSync('./test/packets/mikrotik/mangled.acct.packet'),
-    healthy: readFileSync('./test/packets/mikrotik/acct.packet'),
-    start: readFileSync('./test/packets/mikrotik/Accounting_Request_Start.packet'),
-    interim_update: readFileSync('./test/packets/mikrotik/Accounting_Request_Interim_Update.packet'),
-    stop: readFileSync('./test/packets/mikrotik/Accounting_Request_Stop.packet')
-  }
-}
+var test_secret = 'shared_secret' // shared secret for all test cases
+
+// example packet contents
+var auth_request = 'User-Name=foo,User-Password=bar'
+var acct_interim = 'Acct-Status-Type=Interim-Update'
+var acct_start = 'Acct-Status-Type=Start'
+var acct_stop = 'Acct-Status-Type=Stop'
+var coa_disconnect = 'Acct-Session-Id=foo,User-Name=bar,NAS-IP-Address=10.0.0.1'
 
 describe('tephra', function() {
 
@@ -83,11 +86,11 @@ describe('tephra', function() {
 
   describe('auth, acct and coa packet transmission', function() {
 
-    var server
+    var server // one instance set-up and torn down per test case
 
     beforeEach(function(done) {
       server = new tephra(
-        'c33kr1t',
+        test_secret,
         1812,
         1813,
         1814,
@@ -101,68 +104,163 @@ describe('tephra', function() {
       server.unbind(done)
     })
 
-    it('should handle invalid auth request packets gracefully', function(done) {
-      server.on('error#decode#auth', done.bind(done, null))
-      send('auth', packets.auth.mangled)
-    })
-
     it('should reject irrelevant packet types directed at the auth socket', function(done) {
       server.on('error#decode#auth', done.bind(done, null))
 
       // send an ACCOUNTING packet to the AUTHENTICATION socket
-      send('auth', packets.acct.healthy)
+      radclient(
+        'localhost:1812',
+        'acct',
+        test_secret,
+        acct_start,
+        function(err) {
+          if (err) return done(err)
+        }
+      )
     })
 
     it('should emit Access-Request object on receiving packet', function(done) {
       server.on('Access-Request', done.bind(done, null))
-      send('auth', packets.auth.healthy)
-    })
 
-    it('should handle invalid acct request packets gracefully', function(done) {
-      server.on('error#decode#acct', done.bind(done, null))
-      send('acct', packets.acct.mangled)
+      radclient(
+        'localhost:1812',
+        'auth',
+        test_secret,
+        auth_request,
+        function(err) {
+          if (err) return done(err)
+        }
+      )
     })
 
     it('should reject irrelevant packet types directed at the acct socket', function(done) {
       server.on('error#decode#acct', done.bind(done, null))
 
       // send an AUTHENTICATION packet to the ACCOUNTING socket
-      send('acct', packets.auth.healthy)
+      radclient(
+        'localhost:1813',
+        'auth',
+        test_secret,
+        auth_request,
+        function(err) {
+          if (err) return done(err)
+        }
+      )
     })
 
     it('should send a response correctly for accounting packets', function(done) {
-      server.on('Accounting-Request-Interim-Update', function(request, rinfo) {
+      server.on('Accounting-Request', function(request, rinfo) {
         server.respond('acct', request, 'Accounting-Response', rinfo, [], [], done)
       })
-      send('acct', packets.acct.interim_update)
+
+      radclient(
+        'localhost:1813',
+        'acct',
+        test_secret,
+        acct_interim,
+        function(err) {
+          if (err) return done(err)
+        }
+      )
     })
 
     it('should send a response correctly for accounting packets using the event handler responder function', function(done) {
-      server.on('Accounting-Request-Interim-Update', function(request, rinfo, respond) {
+      server.on('Accounting-Request', function(request, rinfo, respond) {
         respond([], [], done)
       })
-      send('acct', packets.acct.interim_update)
+
+      radclient(
+        'localhost:1813',
+        'acct',
+        test_secret,
+        acct_interim,
+        function(err) {
+          if (err) return done(err)
+        }
+      )
+    })
+
+    it('should emit the accounting request status type when receiving an accounting request', function(done) {
+      var emissions = 0
+      var expected = 2
+
+      function emission_counter() {
+        emissions += 1
+        if (emissions === expected) return done()
+      }
+
+      server.on('Accounting-Request', emission_counter)
+      server.on('Accounting-Request-Interim-Update', emission_counter)
+
+      radclient(
+        'localhost:1813',
+        'acct',
+        test_secret,
+        acct_interim,
+        function(err) {
+          if (err) return done(err)
+        }
+      )
     })
 
     it('should send a response correctly for access-request packets', function(done) {
       server.on('Access-Request', function(request, rinfo, accept, reject) {
         server.respond('auth', request, 'Access-Accept', rinfo, [], [], done)
       })
-      send('auth', packets.auth.healthy)
+
+      radclient(
+        'localhost:1812',
+        'auth',
+        test_secret,
+        auth_request,
+        function(err) {
+          if (err) return done(err)
+        }
+      )
     })
 
     it('should send a response correctly for access-request packets using the event handler responder function', function(done) {
       server.on('Access-Request', function(request, rinfo, accept, reject) {
         accept([], [], done)
       })
-      send('auth', packets.auth.healthy)
+      radclient(
+        'localhost:1812',
+        'auth',
+        test_secret,
+        auth_request,
+        function(err) {
+          if (err) return done(err)
+        }
+      )
     })
 
-    it('#send throw if supplied non-string type', function() {
+    it('should reject irrelevant packet types directed at the coa socket', function(done) {
+      server.on('error#decode#coa', done.bind(done, null))
+
+      radclient(
+        'localhost:1814',
+        'auth',
+        test_secret,
+        auth_request,
+        function(err) {
+          if (err) return done(err)
+        }
+      )
+    })
+
+    it('#disconnect should throw if not given rinfo', function() {
+      expect(server.disconnect.bind(server, null, [], [])).to.throw(/.* \'address\' .*/)
+    })
+
+    it('#disconnect should not throw if given all required arguments', function() {
+      expect(server.disconnect.bind(server, {address: '0.0.0.0', port: 12345}, [], [])).to.not.throw
+    })
+
+    it('#send should throw if supplied non-string type', function() {
       expect(server.send).to.throw(/string argument type/)
     })
 
-    it('#send yield an error if supplied non-array type', function(done) {
+    it('#send should yield an error if supplied non-array type', function(done) {
       server.send(
         'acct',
         0,
@@ -170,18 +268,22 @@ describe('tephra', function() {
         null,
         null,
         function(err) {
-          return err ? done() : (
-            done(new Error('assertion failed: expected `err` to be truthy'))
+          return done(
+            err ?
+            null :
+            new Error(
+              'assertion failed: expected `err` to be truthy'
+            )
           )
         }
       )
     })
 
-    it('#respond throw if supplied non-string type', function() {
+    it('#respond should throw if supplied non-string type', function() {
       expect(server.respond).to.throw(/string argument type/)
     })
 
-    it('#respond yield an error if no packet is given', function(done) {
+    it('#respond should yield an error if no packet is given', function(done) {
       server.respond(
         'acct',
         null,
@@ -190,8 +292,12 @@ describe('tephra', function() {
         null,
         null,
         function(err) {
-          return err ? done() : (
-            done(new Error('assertion failed: expected `err` to be truthy'))
+          return done(
+            err ?
+            null :
+            new Error(
+              'assertion failed: expected `err` to be truthy'
+            )
           )
         }
       )
