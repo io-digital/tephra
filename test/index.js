@@ -15,7 +15,7 @@ function radclient(
   on_exec
 ) {
   // TODO add options for flooding
-  var cmd = `echo "${packet}" | ./test/radclient -d test/dictionaries -n 1 -x ${address} ${packet_type} ${shared_secret}`
+  var cmd = `echo "${packet}" | ${process.env.TRAVIS ? '' : './test/'}radclient -d test/dictionaries -n 1 -x ${address} ${packet_type} ${shared_secret}`
   try {
     cp.exec(cmd, function(err, stdout, stderr) {
       if (err) return on_exec(err)
