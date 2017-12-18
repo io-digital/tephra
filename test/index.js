@@ -49,29 +49,27 @@ describe('tephra', function() {
 
     it('#constructor should throw if required arguments are missing', function() {
       expect(function() {
-        new tephra()
+        new tephra
       }).to.throw(/Missing SHARED_SECRET/)
     })
 
     it('#constructor should throw if vendor_id is missing when dictionary_path is present', function() {
       expect(function() {
         new tephra(
-          'c33kr1t',
+          test_secret,
           1812,
           1813,
           1814,
-          './test/dictionaries/mikrotik.dictionary'
+          './test/dictionaries/telkom.dictionary'
         )
       }).to.throw(/argument VENDOR_ID/)
     })
 
     server = new tephra(
-      'c33kr1t',
+      test_secret,
       1812,
       1813,
-      1814,
-      './test/dictionaries/mikrotik.dictionary',
-      14988
+      1814
     )
 
     it('sockets should bind', function(done) {
@@ -89,15 +87,18 @@ describe('tephra', function() {
     var server // one instance set-up and torn down per test case
 
     beforeEach(function(done) {
-      server = new tephra(
-        test_secret,
-        1812,
-        1813,
-        1814,
-        './test/dictionaries/mikrotik.dictionary',
-        14988
-      )
-      server.bind(done)
+      delete require.cache[require.resolve('radius')]
+      try {
+        server = new tephra(
+          test_secret,
+          1812,
+          1813,
+          1814
+        )
+        server.bind(done)
+      } catch (e) {
+        return done(e)
+      }
     })
 
     afterEach(function(done) {
@@ -148,7 +149,7 @@ describe('tephra', function() {
       )
     })
 
-    it('should send a response correctly for accounting packets', function(done) {
+    it('should send a response for accounting packets', function(done) {
       server.on('Accounting-Request', function(request, rinfo) {
         server.respond('acct', request, 'Accounting-Response', rinfo, [], [], done)
       })
@@ -164,7 +165,7 @@ describe('tephra', function() {
       )
     })
 
-    it('should send a response correctly for accounting packets using the event handler responder function', function(done) {
+    it('should send a response for accounting packets using the event handler responder function', function(done) {
       server.on('Accounting-Request', function(request, rinfo, respond) {
         respond([], [], done)
       })
@@ -203,7 +204,7 @@ describe('tephra', function() {
       )
     })
 
-    it('should send a response correctly for access-request packets', function(done) {
+    it('should send a response for access-request packets', function(done) {
       server.on('Access-Request', function(request, rinfo, accept, reject) {
         server.respond('auth', request, 'Access-Accept', rinfo, [], [], done)
       })
@@ -219,7 +220,7 @@ describe('tephra', function() {
       )
     })
 
-    it('should send a response correctly for access-request packets using the event handler responder function', function(done) {
+    it('should send a response for access-request packets using the event handler responder function', function(done) {
       server.on('Access-Request', function(request, rinfo, accept, reject) {
         accept([], [], done)
       })
