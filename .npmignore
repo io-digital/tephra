@@ -4,3 +4,6 @@ test/
 .gitignore
 .nvmrc
 .travis.yml
+
+# binary used for testing and benchmarking
+test/radclient
