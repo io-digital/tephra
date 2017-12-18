@@ -87,7 +87,7 @@ describe('tephra', function() {
     var server // one instance set-up and torn down per test case
 
     beforeEach(function(done) {
-      delete require.cache[require.resolve('radius')]
+      delete require.cache[require.resolve('..')]
       try {
         server = new tephra(
           test_secret,
