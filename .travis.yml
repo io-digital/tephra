@@ -1,7 +1,3 @@
-addons:
-  apt:
-    packages:
-      - freeradius
 language: node_js
 node_js:
   - lts/*
@@ -11,6 +7,7 @@ node_js:
 env:
   - CODECLIMATE_REPO_TOKEN=b83c1c55a2d69a66cff5ad30be52cf23b6a8d44401b64f08eec9a2939cf3692b
 before_script:
+  - sudo apt-get install freeradius
   - sudo service freeradius stop
 after_script:
   - npm test --coverage
