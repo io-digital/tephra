@@ -3,6 +3,3 @@
 coverage
 node_modules
 *.DS_Store
-
-# binary used for testing and benchmarking
-*/radclient
