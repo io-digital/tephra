@@ -13,6 +13,6 @@ module.exports = function accounting_respond(
     rinfo,
     attributes,
     vendor_attributes,
-    on_responded
+    on_responded || function() {}
   )
 }
