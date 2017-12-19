@@ -4,3 +4,4 @@ test/
 .gitignore
 .nvmrc
 .travis.yml
+.codeclimate.yml
