@@ -3,7 +3,12 @@ var radius = require('radius')
 
 var marshall_attributes = require('./marshall_attributes')
 
-module.exports = function encode_request(code, attributes, vendor_attributes, on_error) {
+module.exports = function encode_request(
+  code,
+  attributes,
+  vendor_attributes,
+  on_error
+) {
   try {
     var encoded = radius.encode({
       attributes: marshall_attributes.call(this, attributes, vendor_attributes),

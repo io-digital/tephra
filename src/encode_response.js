@@ -3,7 +3,13 @@ var radius = require('radius')
 
 var marshall_attributes = require('./marshall_attributes')
 
-module.exports = function encode_response(packet, code, attributes, vendor_attributes, on_error) {
+module.exports = function encode_response(
+  packet,
+  code,
+  attributes,
+  vendor_attributes,
+  on_error
+) {
   try {
     var encoded = radius.encode_response({
       packet: packet,
