@@ -14,6 +14,9 @@ var access_accept = require('./access_accept')
 var access_reject = require('./access_reject')
 var accounting_respond = require('./accounting_respond')
 var marshall_attributes = require('./marshall_attributes')
+var auth_on_message = require('./auth_on_message')
+var acct_on_message = require('./acct_on_message')
+var coa_on_message = require('./coa_on_message')
 
 module.exports = (class extends EventEmitter {
 
@@ -47,69 +50,9 @@ module.exports = (class extends EventEmitter {
     }
 
     this.SOCKETS = {
-      AUTH: dgram.createSocket('udp4', function(message, rinfo) {
-        var decoded = decode.call(
-          this,
-          message,
-          function(packet) {
-            return packet.code === 'Access-Request'
-          },
-          this.emit.bind(this, 'error#decode#auth')
-        )
-        if (!decoded) {
-          // seems sensible to default to access-reject here
-          return access_reject.call(this, decoded, rinfo)
-        }
-        this.emit(
-          decoded.code,
-          decoded,
-          rinfo,
-          access_accept.bind(this, decoded, rinfo),
-          access_reject.bind(this, decoded, rinfo)
-        )
-      }.bind(this)),
-      ACCT: dgram.createSocket('udp4', function(message, rinfo) {
-        var decoded = decode.call(
-          this,
-          message,
-          function(packet) {
-            return packet.code === 'Accounting-Request'
-          },
-          this.emit.bind(this, 'error#decode#acct')
-        )
-        if (!decoded) return
-        // emit accounting-request
-        this.emit(
-          decoded.code,
-          decoded,
-          rinfo,
-          accounting_respond.bind(this, decoded, rinfo)
-        )
-        // as well as accounting-request-{{status-type}}
-        this.emit(
-          `${decoded.code}-${decoded.attributes['Acct-Status-Type'] || 'unknown'}`,
-          decoded,
-          rinfo,
-          accounting_respond.bind(this, decoded, rinfo)
-        )
-      }.bind(this)),
-      COA: dgram.createSocket('udp4', function(message, rinfo) {
-        var decoded = decode.call(
-          this,
-          message,
-          function(packet) {
-            return [
-              'Disconnect-ACK',
-              'Disconnect-NAK',
-              'CoA-ACK',
-              'CoA-NAK'
-            ].indexOf(packet.code) !== -1
-          },
-          this.emit.bind(this, 'error#decode#coa')
-        )
-        if (!decoded) return
-        this.emit(decoded.code, decoded, rinfo)
-      }.bind(this))
+      AUTH: dgram.createSocket('udp4', auth_on_message.bind(this)),
+      ACCT: dgram.createSocket('udp4', acct_on_message.bind(this)),
+      COA: dgram.createSocket('udp4', coa_on_message.bind(this))
     }
   }
 
