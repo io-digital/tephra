@@ -18,6 +18,5 @@ checks:
   return-statements:
     config:
       threshold: 8
-  # similar-code:
-  #   config:
-  #     threshold: 5
+  similar-code:
+    enabled: false
