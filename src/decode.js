@@ -8,11 +8,11 @@ module.exports = function decode(message, guard, on_error) {
       secret: this.SHARED_SECRET
     })
   } catch (err) {
-    on_error(err.message)
+    on_error(err)
     return
   }
   if (!guard(decoded)) {
-    on_error('packed decode guard failed')
+    on_error(new Error('packed decode guard failed'))
     return
   }
   return decoded
