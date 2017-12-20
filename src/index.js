@@ -82,7 +82,13 @@ module.exports = (class extends EventEmitter {
     if (typeof type !== 'string') {
       throw new Error('Missing required string argument type')
     }
-    var encoded = encode_request.call(this, code, attributes, vendor_attributes, on_sent)
+    var encoded = encode_request.call(
+      this,
+      code,
+      attributes,
+      vendor_attributes,
+      on_sent
+    )
     if (!encoded) return
     send.call(
       this.SOCKETS[type.toUpperCase()],
@@ -104,7 +110,14 @@ module.exports = (class extends EventEmitter {
     if (typeof type !== 'string') {
       throw new Error('Missing required string argument type')
     }
-    var encoded = encode_response.call(this, packet, code, attributes, vendor_attributes, on_responded)
+    var encoded = encode_response.call(
+      this,
+      packet,
+      code,
+      attributes,
+      vendor_attributes,
+      on_responded
+    )
     if (!encoded) return
     send.call(
       this.SOCKETS[type.toUpperCase()],
