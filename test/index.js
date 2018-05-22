@@ -1,12 +1,6 @@
 
 'use strict'
 
-/**
- * invokes freeradius's radius client with given packet contents
- * which helps us ensure that our server is as close to
- * rfc-compliant as possible or at least compatible with
- * existing radius implementations
- */
 function radclient(
   address,
   packet_type,
@@ -15,11 +9,18 @@ function radclient(
   on_exec
 ) {
   // TODO add options for flooding
-  var cmd = `echo "${packet}" | ${process.env.TRAVIS ? '/usr/bin/' : './test/'}radclient -n 1 -x ${address} ${packet_type} ${shared_secret}`
+  var cmd = `echo "${packet}" | ${process.env.TRAVIS ? '/usr/bin/' : './test/'}radclient -t 0.5 -r 1 -n 1 -x ${address} ${packet_type} ${shared_secret}`
+
+  // NOTE the child process timeout has to be set to a value
+  // much lower than the actual radius packet response latency
+  // timeout of radclient, but higher than the expected latency
+  // of a successful response to ensure node promptly kills all
+  // child processes during test-case cleanup and to ensure we don't
+  // invoke the done callback for test-cases more than once when
+  // radclient exits with an error due to response packet timeout
   try {
-    cp.exec(cmd, function(err, stdout, stderr) {
-      if (err) return on_exec(err)
-      return on_exec()
+    cp.exec(cmd, {timeout: 1000}, function(err) {
+      return on_exec(err)
     })
   } catch (e) {
     return on_exec(e)
@@ -27,14 +28,10 @@ function radclient(
 }
 
 var cp = require('child_process')
-
-var expect = require('chai').expect
-
+var {expect} = require('chai')
 var tephra = require('../')
 
-var test_secret = 'shared_secret' // shared secret for all test cases
-
-// example packet contents
+var test_secret = 'shared_secret'
 var auth_request = 'User-Name=foo,User-Password=bar'
 var acct_interim = 'Acct-Status-Type=Interim-Update'
 var acct_start = 'Acct-Status-Type=Start'
@@ -42,6 +39,8 @@ var acct_stop = 'Acct-Status-Type=Stop'
 var coa_disconnect = 'Acct-Session-Id=foo,User-Name=bar,NAS-IP-Address=10.0.0.1'
 
 describe('tephra', function() {
+
+  this.timeout(5000)
 
   describe('lifecycle', function() {
 
@@ -84,7 +83,7 @@ describe('tephra', function() {
 
   describe('auth, acct and coa packet transmission', function() {
 
-    var server // one instance set-up and torn down per test case
+    var server
 
     beforeEach(function(done) {
       delete require.cache[require.resolve('..')]
@@ -115,7 +114,7 @@ describe('tephra', function() {
         test_secret,
         acct_start,
         function(err) {
-          if (err) return done(err)
+          if (err && !err.killed) return done(err)
         }
       )
     })
@@ -129,7 +128,7 @@ describe('tephra', function() {
         test_secret,
         auth_request,
         function(err) {
-          if (err) return done(err)
+          if (err && !err.killed) return done(err)
         }
       )
     })
@@ -144,7 +143,7 @@ describe('tephra', function() {
         test_secret,
         auth_request,
         function(err) {
-          if (err) return done(err)
+          if (err && !err.killed) return done(err)
         }
       )
     })
@@ -160,7 +159,7 @@ describe('tephra', function() {
         test_secret,
         acct_interim,
         function(err) {
-          if (err) return done(err)
+          if (err && !err.killed) return done(err)
         }
       )
     })
@@ -176,7 +175,7 @@ describe('tephra', function() {
         test_secret,
         acct_interim,
         function(err) {
-          if (err) return done(err)
+          if (err && !err.killed) return done(err)
         }
       )
     })
@@ -199,7 +198,7 @@ describe('tephra', function() {
         test_secret,
         acct_interim,
         function(err) {
-          if (err) return done(err)
+          if (err && !err.killed) return done(err)
         }
       )
     })
@@ -215,7 +214,7 @@ describe('tephra', function() {
         test_secret,
         auth_request,
         function(err) {
-          if (err) return done(err)
+          if (err && !err.killed) return done(err)
         }
       )
     })
@@ -230,7 +229,7 @@ describe('tephra', function() {
         test_secret,
         auth_request,
         function(err) {
-          if (err) return done(err)
+          if (err && !err.killed) return done(err)
         }
       )
     })
@@ -244,7 +243,7 @@ describe('tephra', function() {
         test_secret,
         auth_request,
         function(err) {
-          if (err) return done(err)
+          if (err && !err.killed) return done(err)
         }
       )
     })
