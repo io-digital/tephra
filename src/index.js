@@ -25,8 +25,7 @@ module.exports = (class extends EventEmitter {
     AUTH_PORT,
     ACCT_PORT,
     COA_PORT,
-    VENDOR_DICTIONARY_PATH,
-    VENDOR_ID
+    VENDOR_DICTIONARIES
   ) {
     super()
 
@@ -34,19 +33,21 @@ module.exports = (class extends EventEmitter {
       throw new Error('Missing SHARED_SECRET, AUTH_PORT, ACCT_PORT or COA_PORT arguments')
     }
 
-    if (VENDOR_DICTIONARY_PATH && !VENDOR_ID) {
-      throw new Error('Missing required argument VENDOR_ID')
-    }
-
     this.SHARED_SECRET = SHARED_SECRET
     this.AUTH_PORT = AUTH_PORT
     this.ACCT_PORT = ACCT_PORT
     this.COA_PORT = COA_PORT
 
-    // we have to check these again because they are optional
-    if (VENDOR_DICTIONARY_PATH && VENDOR_ID) {
-      radius.add_dictionary(VENDOR_DICTIONARY_PATH)
-      this.VENDOR_ID = VENDOR_ID
+    if(VENDOR_DICTIONARIES){
+      this.VENDOR_IDS = {}
+      for(let i = 0; i < VENDOR_DICTIONARIES.length; i++){
+        if(!VENDOR_DICTIONARIES[i].vendor || !VENDOR_DICTIONARIES[i].path || !VENDOR_DICTIONARIES[i].id){
+          throw new Error('Missing vendor details')
+        }
+
+        radius.add_dictionary(VENDOR_DICTIONARIES[i].path)
+        this.VENDOR_IDS[VENDOR_DICTIONARIES[i].vendor] = VENDOR_DICTIONARIES[i].id
+      }
     }
 
     this.SOCKETS = {

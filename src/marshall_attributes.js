@@ -4,8 +4,10 @@ module.exports = function marshall_attributes(attributes, vendor_attributes) {
   if (Array.isArray(attributes) && attributes.length) {
     marshalled = marshalled.concat(attributes)
   }
-  if (this.VENDOR_ID && Array.isArray(vendor_attributes) && vendor_attributes.length) {
-    marshalled.push(['Vendor-Specific', this.VENDOR_ID, vendor_attributes])
-  }
+
+  Object.keys(vendor_attributes).forEach((vendorName) => {
+  	marshalled.push(['Vendor-Specific', this.VENDOR_IDS[vendorName], vendor_attributes[vendorName]])
+  })
+
   return marshalled
 }
