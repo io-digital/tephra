@@ -54,7 +54,7 @@ describe('tephra', function() {
             {}
           ]
         )
-      }).to.not.throw(
+      }).to.throw(
         /\{vendor\:\ String\,\ path\:\ String\,\ id\:\ Number\}/
       )
     })
