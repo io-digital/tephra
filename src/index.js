@@ -13,7 +13,7 @@ var encode_response = require('./encode_response')
 var access_accept = require('./access_accept')
 var access_reject = require('./access_reject')
 var accounting_respond = require('./accounting_respond')
-var marshall_attributes = require('./marshall_attributes')
+var marshall_attributes = require('./node_radius_shim')
 var auth_on_message = require('./auth_on_message')
 var acct_on_message = require('./acct_on_message')
 var coa_on_message = require('./coa_on_message')
@@ -37,17 +37,25 @@ module.exports = (class extends EventEmitter {
     this.AUTH_PORT = AUTH_PORT
     this.ACCT_PORT = ACCT_PORT
     this.COA_PORT = COA_PORT
+    this.VENDOR_IDS = {}
 
-    if(VENDOR_DICTIONARIES){
-      this.VENDOR_IDS = {}
-      for(let i = 0; i < VENDOR_DICTIONARIES.length; i++){
-        if(!VENDOR_DICTIONARIES[i].vendor || !VENDOR_DICTIONARIES[i].path || !VENDOR_DICTIONARIES[i].id){
-          throw new Error('Missing vendor details')
+    if (Array.isArray(VENDOR_DICTIONARIES) && VENDOR_DICTIONARIES.length) {
+      VENDOR_DICTIONARIES.forEach((dict, idx) => {
+        if (!(
+          typeof dict.vendor === 'string' &&
+          dict.vendor.length &&
+          dict.path === 'string' &&
+          dict.path.length &&
+          dict.id === 'number' &&
+          dict.id
+        )) {
+          throw new Error(
+            `Expected {vendor: String, path: String, id: Number} at index ${idx} in VENDOR_DICTIONARIES`
+          )
         }
-
-        radius.add_dictionary(VENDOR_DICTIONARIES[i].path)
-        this.VENDOR_IDS[VENDOR_DICTIONARIES[i].vendor] = VENDOR_DICTIONARIES[i].id
-      }
+        radius.add_dictionary(dict.path)
+        this.VENDOR_IDS[dict.vendor] = dict.id
+      })
     }
 
     this.SOCKETS = {
