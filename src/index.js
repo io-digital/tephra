@@ -44,9 +44,9 @@ module.exports = (class extends EventEmitter {
         if (!(
           typeof dict.vendor === 'string' &&
           dict.vendor.length &&
-          dict.path === 'string' &&
+          typeof dict.path === 'string' &&
           dict.path.length &&
-          dict.id === 'number' &&
+          typeof dict.id === 'number' &&
           dict.id
         )) {
           throw new Error(
