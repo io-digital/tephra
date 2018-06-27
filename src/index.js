@@ -13,7 +13,7 @@ var encode_response = require('./encode_response')
 var access_accept = require('./access_accept')
 var access_reject = require('./access_reject')
 var accounting_respond = require('./accounting_respond')
-var marshall_attributes = require('./marshall_attributes')
+var marshall_attributes = require('./node_radius_shim')
 var auth_on_message = require('./auth_on_message')
 var acct_on_message = require('./acct_on_message')
 var coa_on_message = require('./coa_on_message')
@@ -25,8 +25,7 @@ module.exports = (class extends EventEmitter {
     AUTH_PORT,
     ACCT_PORT,
     COA_PORT,
-    VENDOR_DICTIONARY_PATH,
-    VENDOR_ID
+    VENDOR_DICTIONARIES
   ) {
     super()
 
@@ -34,19 +33,29 @@ module.exports = (class extends EventEmitter {
       throw new Error('Missing SHARED_SECRET, AUTH_PORT, ACCT_PORT or COA_PORT arguments')
     }
 
-    if (VENDOR_DICTIONARY_PATH && !VENDOR_ID) {
-      throw new Error('Missing required argument VENDOR_ID')
-    }
-
     this.SHARED_SECRET = SHARED_SECRET
     this.AUTH_PORT = AUTH_PORT
     this.ACCT_PORT = ACCT_PORT
     this.COA_PORT = COA_PORT
+    this.VENDOR_IDS = {}
 
-    // we have to check these again because they are optional
-    if (VENDOR_DICTIONARY_PATH && VENDOR_ID) {
-      radius.add_dictionary(VENDOR_DICTIONARY_PATH)
-      this.VENDOR_ID = VENDOR_ID
+    if (Array.isArray(VENDOR_DICTIONARIES) && VENDOR_DICTIONARIES.length) {
+      VENDOR_DICTIONARIES.forEach((dict, idx) => {
+        if (!(
+          typeof dict.vendor === 'string' &&
+          dict.vendor.length &&
+          dict.path === 'string' &&
+          dict.path.length &&
+          dict.id === 'number' &&
+          dict.id
+        )) {
+          throw new Error(
+            `Expected {vendor: String, path: String, id: Number} at index ${idx} in VENDOR_DICTIONARIES`
+          )
+        }
+        radius.add_dictionary(dict.path)
+        this.VENDOR_IDS[dict.vendor] = dict.id
+      })
     }
 
     this.SOCKETS = {

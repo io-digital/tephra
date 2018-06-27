@@ -9,28 +9,19 @@ function radclient(
   on_exec
 ) {
   // TODO add options for flooding
-  var cmd = `echo "${packet}" | ${process.env.TRAVIS ? '/usr/bin/' : './test/'}radclient -t 0.5 -r 1 -n 1 -x ${address} ${packet_type} ${shared_secret}`
-
-  // NOTE the child process timeout has to be set to a value
-  // much lower than the actual radius packet response latency
-  // timeout of radclient, but higher than the expected latency
-  // of a successful response to ensure node promptly kills all
-  // child processes during test-case cleanup and to ensure we don't
-  // invoke the done callback for test-cases more than once when
-  // radclient exits with an error due to response packet timeout
-  try {
-    cp.exec(cmd, {timeout: 1000}, function(err) {
-      return on_exec(err)
-    })
-  } catch (e) {
-    return on_exec(e)
-  }
+  var cmd = `echo "${packet}" | ${process.env.TRAVIS ? '/usr/bin/' : './test/'}radclient -n 1 -x ${address} ${packet_type} ${shared_secret}`
+  cp.exec(cmd, {
+    timeout: 1000
+  }, function(err, stdout, stderr) {
+    return on_exec(err)
+  })
 }
 
 var cp = require('child_process')
 var {expect} = require('chai')
 var tephra = require('../')
 
+// some fixtures
 var test_secret = 'shared_secret'
 var auth_request = 'User-Name=foo,User-Password=bar'
 var acct_interim = 'Acct-Status-Type=Interim-Update'
@@ -52,33 +43,38 @@ describe('tephra', function() {
       }).to.throw(/Missing SHARED_SECRET/)
     })
 
-    it('#constructor should throw if vendor_id is missing when dictionary_path is present', function() {
+    it('#constructor should throw if vendor dictionary arguments are invalid', function() {
       expect(function() {
         new tephra(
           test_secret,
           1812,
           1813,
           1814,
-          './test/dictionaries/telkom.dictionary'
+          [
+            {}
+          ]
         )
-      }).to.throw(/argument VENDOR_ID/)
+      }).to.throw(
+        /\{vendor\:\ String\,\ path\:\ String\,\ id\:\ Number\}/
+      )
     })
 
-    server = new tephra(
-      test_secret,
-      1812,
-      1813,
-      1814
-    )
+    describe('sockets', function() {
+      server = new tephra(
+        test_secret,
+        1812,
+        1813,
+        1814
+      )
 
-    it('sockets should bind', function(done) {
-      server.bind(done)
+      it('should bind', function(done) {
+        server.bind(done)
+      })
+
+      it('should unbind', function(done) {
+        server.unbind(done)
+      })
     })
-
-    it('sockets should unbind', function(done) {
-      server.unbind(done)
-    })
-
   })
 
   describe('auth, acct and coa packet transmission', function() {
