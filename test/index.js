@@ -9,7 +9,7 @@ function radclient(
   on_exec
 ) {
   // TODO add options for flooding
-  var cmd = `echo "${packet}" | ${process.env.TRAVIS ? '/usr/bin/' : './test/'}radclient -n 1 -x -P udp ${address} ${packet_type} ${shared_secret}`
+  var cmd = `echo "${packet}" | ${process.env.TRAVIS ? '/usr/bin/' : './test/'}radclient -n 1 -x ${address} ${packet_type} ${shared_secret}`
   cp.exec(cmd, {
     timeout: 1000
   }, function(err, stdout, stderr) {
@@ -43,7 +43,7 @@ describe('tephra', function() {
       }).to.throw(/Missing SHARED_SECRET/)
     })
 
-    it('#constructor should throw if vendor_id is missing when dictionary_path is present', function() {
+    it('#constructor should throw if vendor dictionary arguments are invalid', function() {
       expect(function() {
         new tephra(
           test_secret,
@@ -59,21 +59,22 @@ describe('tephra', function() {
       )
     })
 
-    server = new tephra(
-      test_secret,
-      1812,
-      1813,
-      1814
-    )
+    describe('sockets', function() {
+      server = new tephra(
+        test_secret,
+        1812,
+        1813,
+        1814
+      )
 
-    it('sockets should bind', function(done) {
-      server.bind(done)
+      it('should bind', function(done) {
+        server.bind(done)
+      })
+
+      it('should unbind', function(done) {
+        server.unbind(done)
+      })
     })
-
-    it('sockets should unbind', function(done) {
-      server.unbind(done)
-    })
-
   })
 
   describe('auth, acct and coa packet transmission', function() {
