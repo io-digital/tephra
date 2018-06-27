@@ -5,3 +5,4 @@ test/
 .nvmrc
 .travis.yml
 .codeclimate.yml
+coverage/
