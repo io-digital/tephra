@@ -1,7 +1,7 @@
 
 var radius = require('radius')
 
-var marshall_attributes = require('./marshall_attributes')
+var node_radius_shim = require('./node_radius_shim')
 
 module.exports = function encode_request(
   code,
@@ -11,7 +11,7 @@ module.exports = function encode_request(
 ) {
   try {
     var encoded = radius.encode({
-      attributes: marshall_attributes.call(this, attributes, vendor_attributes),
+      attributes: node_radius_shim.call(this, attributes, vendor_attributes),
       secret: this.SHARED_SECRET,
       code: code
     })
