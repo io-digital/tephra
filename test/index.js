@@ -273,7 +273,7 @@ describe('tephra', function() {
     it('#disconnect should throw if not given rinfo', function() {
       expect(
         server.disconnect.bind(server, null, [], {})
-      ).to.throw(/.* \'address\' .*/)
+      ).to.throw()
     })
 
     it('#disconnect should not throw if given all required arguments', function() {
