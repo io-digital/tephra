@@ -227,7 +227,7 @@ describe('tephra', function() {
 
     it('should send a response for access-request packets', function(done) {
       server.on('Access-Request', function(request, rinfo, accept, reject) {
-        server.respond('auth', request, 'Access-Accept', rinfo, [], [], done)
+        server.respond('auth', request, 'Access-Accept', rinfo, [], {}, done)
       })
 
       radclient(
@@ -243,7 +243,7 @@ describe('tephra', function() {
 
     it('should send a response for access-request packets using the event handler responder function', function(done) {
       server.on('Access-Request', function(request, rinfo, accept, reject) {
-        accept([], [], done)
+        accept([], {}, done)
       })
       radclient(
         'localhost:1812',
