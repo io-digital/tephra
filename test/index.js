@@ -43,20 +43,46 @@ describe('tephra', function() {
       }).to.throw(/Missing SHARED_SECRET/)
     })
 
-    it('#constructor should throw if vendor dictionary arguments are invalid', function() {
-      expect(function() {
-        new tephra(
+    describe('vendor dictionaries', function() {
+
+      it('#constructor should throw if vendor dictionary arguments are invalid', function() {
+        expect(function() {
+          new tephra(
+            test_secret,
+            1812,
+            1813,
+            1814,
+            [
+              {}
+            ]
+          )
+        }).to.throw(
+          /\{vendor\:\ String\,\ path\:\ String\,\ id\:\ Number\}/
+        )
+      })
+
+      it('should hold an internal representation of vendor dictionaries, mapping vendor name to vendor id', function() {
+        var t = new tephra(
           test_secret,
           1812,
           1813,
           1814,
           [
-            {}
+            {
+              vendor: 'telkom',
+              path: './test/dictionaries/telkom.dictionary',
+              id: 1431
+            },
+            {
+              vendor: 'mikrotik',
+              path: './test/dictionaries/mikrotik.dictionary',
+              id: 14988
+            }
           ]
         )
-      }).to.throw(
-        /\{vendor\:\ String\,\ path\:\ String\,\ id\:\ Number\}/
-      )
+        expect(t.VENDOR_IDS.mikrotik).to.equal(14988)
+        expect(t.VENDOR_IDS.telkom).to.equal(1431)
+      })
     })
 
     describe('sockets', function() {
@@ -146,7 +172,7 @@ describe('tephra', function() {
 
     it('should send a response for accounting packets', function(done) {
       server.on('Accounting-Request', function(request, rinfo) {
-        server.respond('acct', request, 'Accounting-Response', rinfo, [], [], done)
+        server.respond('acct', request, 'Accounting-Response', rinfo, [], {}, done)
       })
 
       radclient(
@@ -162,7 +188,7 @@ describe('tephra', function() {
 
     it('should send a response for accounting packets using the event handler responder function', function(done) {
       server.on('Accounting-Request', function(request, rinfo, respond) {
-        respond([], [], done)
+        respond([], {}, done)
       })
 
       radclient(
@@ -201,7 +227,7 @@ describe('tephra', function() {
 
     it('should send a response for access-request packets', function(done) {
       server.on('Access-Request', function(request, rinfo, accept, reject) {
-        server.respond('auth', request, 'Access-Accept', rinfo, [], [], done)
+        server.respond('auth', request, 'Access-Accept', rinfo, [], {}, done)
       })
 
       radclient(
@@ -217,7 +243,7 @@ describe('tephra', function() {
 
     it('should send a response for access-request packets using the event handler responder function', function(done) {
       server.on('Access-Request', function(request, rinfo, accept, reject) {
-        accept([], [], done)
+        accept([], {}, done)
       })
       radclient(
         'localhost:1812',
@@ -245,11 +271,15 @@ describe('tephra', function() {
     })
 
     it('#disconnect should throw if not given rinfo', function() {
-      expect(server.disconnect.bind(server, null, [], [])).to.throw(/.* \'address\' .*/)
+      expect(
+        server.disconnect.bind(server, null, [], {})
+      ).to.throw()
     })
 
     it('#disconnect should not throw if given all required arguments', function() {
-      expect(server.disconnect.bind(server, {address: '0.0.0.0', port: 12345}, [], [])).to.not.throw
+      expect(
+        server.disconnect.bind(server, {address: '0.0.0.0', port: 12345}, [], {})
+      ).to.not.throw
     })
 
     it('#send should throw if supplied non-string type', function() {

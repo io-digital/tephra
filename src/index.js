@@ -7,13 +7,8 @@ var dgram = require('dgram')
 var radius = require('radius')
 
 var send = require('./send')
-var decode = require('./decode')
 var encode_request = require('./encode_request')
 var encode_response = require('./encode_response')
-var access_accept = require('./access_accept')
-var access_reject = require('./access_reject')
-var accounting_respond = require('./accounting_respond')
-var marshall_attributes = require('./node_radius_shim')
 var auth_on_message = require('./auth_on_message')
 var acct_on_message = require('./acct_on_message')
 var coa_on_message = require('./coa_on_message')
@@ -37,9 +32,9 @@ module.exports = (class extends EventEmitter {
     this.AUTH_PORT = AUTH_PORT
     this.ACCT_PORT = ACCT_PORT
     this.COA_PORT = COA_PORT
-    this.VENDOR_IDS = {}
 
     if (Array.isArray(VENDOR_DICTIONARIES) && VENDOR_DICTIONARIES.length) {
+      var vendor_dictionaries = {}
       VENDOR_DICTIONARIES.forEach((dict, idx) => {
         if (!(
           typeof dict.vendor === 'string' &&
@@ -54,8 +49,10 @@ module.exports = (class extends EventEmitter {
           )
         }
         radius.add_dictionary(dict.path)
-        this.VENDOR_IDS[dict.vendor] = dict.id
+        vendor_dictionaries[dict.vendor] = dict.id
       })
+
+      this.VENDOR_IDS = vendor_dictionaries
     }
 
     this.SOCKETS = {
@@ -142,9 +139,13 @@ module.exports = (class extends EventEmitter {
     vendor_attributes,
     on_sent
   ) {
-    this.send('coa', 'Disconnect-Request', {
-      address: rinfo.address,
-      port: rinfo.port
-    }, attributes, vendor_attributes, on_sent)
+    this.send(
+      'coa',
+      'Disconnect-Request',
+      rinfo,
+      attributes,
+      vendor_attributes,
+      on_sent
+    )
   }
 })

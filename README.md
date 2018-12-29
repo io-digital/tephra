@@ -8,13 +8,20 @@ an evented [radius](https://en.wikipedia.org/wiki/RADIUS) server based on [node-
 ## example
 
 ```javascript
-var users = {'joe-bloggs': 'secret-password'}
+var users = {user1: 'secret_password'}
 var tephra = require('tephra')
 var server = new tephra(
   'shared_secret',
   1812, // authentication port
   1813, // accounting port
-  1814 // change of authorisation port
+  3799, // change of authorisation port
+  [ // define any vendor dictionaries for vendor-specific attributes
+    {
+      name: 'some_vendor',
+      path: '/path/to/some/vendor/dictionary',
+      id: 12345
+    }
+  ]
 )
 
 server.on('Access-Request', function(packet, rinfo, accept, reject) {
@@ -22,45 +29,31 @@ server.on('Access-Request', function(packet, rinfo, accept, reject) {
       password = packet.attributes['User-Password']
   if (username in users && users[username] === password) {
     return accept(
-      [/* attributes */],
-      [/* vendor attributes */],
+      [
+        ['put', 'your'],
+        ['response', 'attribute'],
+        ['pairs', 'here']
+      ],
+      { /* and vendor attributes here */
+        some_vendor: [
+          ['foo', 'bar']
+        ]
+      },
       console.log
     )
   }
-  reject(
-    [/* attributes */],
-    [/* vendor attributes */],
-    console.log
-  )
+  reject([], {}, console.log)
 }).on('Accounting-Request', function(packet, rinfo, respond) {
   // catch all accounting-requests
-  respond(
-    [/* attributes */],
-    [/* vendor attributes */],
-    console.log
-  )
+  respond([], {}, console.log)
 }).on('Accounting-Request-Start', function(packet, rinfo, respond) {
   // or just catch specific accounting-request status types...
-  respond(
-    [/* attributes */],
-    [/* vendor attributes */],
-    console.log
-  )
+  respond([], {}, console.log)
 }).on('Accounting-Request-Interim-Update', function(packet, rinfo, respond) {
-  respond(
-    [/* attributes */],
-    [/* vendor attributes */],
-    console.log
-  )
+  respond([], {}, console.log)
 }).on('Accounting-Request-Stop', function(packet, rinfo, respond) {
-  respond(
-    [/* attributes */],
-    [/* vendor attributes */],
-    console.log
-  )
-}).bind()
+  respond([], {}, console.log)
+})
+
+server.bind()
 ```
-
-## notes
-
-* since we're supporting all lts versions, we can't use arrow functions (and perhaps some other features, too) until node 4 is out of maintenance period.
