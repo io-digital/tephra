@@ -1,6 +1,6 @@
 {
   "name": "tephra",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "an evented radius server",
   "keywords": [
     "radius",
