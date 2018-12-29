@@ -10,7 +10,7 @@ module.exports = function node_radius_shim(
   Object.keys(
     vendor_attributes
   ).forEach(vendor_name => {
-  	shimmed.push([
+    shimmed.push([
       'Vendor-Specific',
       this.VENDOR_IDS[vendor_name],
       vendor_attributes[vendor_name]

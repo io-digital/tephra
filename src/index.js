@@ -32,9 +32,9 @@ module.exports = (class extends EventEmitter {
     this.AUTH_PORT = AUTH_PORT
     this.ACCT_PORT = ACCT_PORT
     this.COA_PORT = COA_PORT
+    this.VENDOR_IDS = {}
 
     if (Array.isArray(VENDOR_DICTIONARIES) && VENDOR_DICTIONARIES.length) {
-      var vendor_dictionaries = {}
       VENDOR_DICTIONARIES.forEach((dict, idx) => {
         if (!(
           typeof dict.vendor === 'string' &&
@@ -49,10 +49,8 @@ module.exports = (class extends EventEmitter {
           )
         }
         radius.add_dictionary(dict.path)
-        vendor_dictionaries[dict.vendor] = dict.id
+        this.VENDOR_IDS[dict.vendor] = dict.id
       })
-
-      this.VENDOR_IDS = vendor_dictionaries
     }
 
     this.SOCKETS = {
