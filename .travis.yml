@@ -5,5 +5,7 @@ node_js:
   - 10
   - 8
   - 6
+before_script:
+  - sudo apt-get install -y freeradius-utils
 script:
   - npm test
