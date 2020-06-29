@@ -6,3 +6,6 @@ test/
 .travis.yml
 .codeclimate.yml
 coverage/
+docker-compose.yaml
+Dockerfile
+Makefile
