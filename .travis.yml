@@ -3,8 +3,6 @@ node_js:
   - 14
   - 12
   - 10
-  - 8
-  - 6
 before_script:
   - sudo apt-get install -y freeradius-utils
 script:
