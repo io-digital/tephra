@@ -1,6 +1,7 @@
 {
   "name": "tephra",
   "version": "1.0.4",
+  "license": "BSD-3-Clause",
   "description": "an evented radius server",
   "keywords": [
     "radius",
@@ -11,34 +12,20 @@
     "service"
   ],
   "scripts": {
-    "test": "istanbul test _mocha -- -R spec",
-    "coverage": "istanbul cover _mocha --report lcovonly -- test -R spec"
+    "test": "if [ $(uname) = 'Darwin' ]; then echo NOTICE: please use 'make test' to run the test suite; exit 1; else mocha test; fi"
   },
-  "contributors": [
-    "Barry Botha <barry@io.co.za>",
-    "Ant Cosentino <ant@io.co.za>"
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/io-digital/tephra"
   },
-  "bugs": {
-    "url": "https://github.com/io-digital/tephra/issues",
-    "email": "ant@io.co.za"
-  },
   "engines": {
     "node": ">=6.0.0"
   },
-  "os": [
-    "!win32"
-  ],
-  "license": "BSD-3-Clause",
   "devDependencies": {
-    "chai": "^4.1.2",
-    "istanbul": "^0.4.5",
-    "mocha": "^5.2.0"
+    "chai": "^4.2.0",
+    "mocha": "^8.0.1"
   },
   "dependencies": {
-    "radius": "^1.1.3"
+    "radius": "1.1.4"
   }
 }

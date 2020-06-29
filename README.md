@@ -1,5 +1,5 @@
 
-# tephra [![Build Status](https://travis-ci.org/io-digital/tephra.svg?branch=master)](https://travis-ci.org/io-digital/tephra) [![Code Climate](https://codeclimate.com/github/io-digital/tephra/badges/gpa.svg)](https://codeclimate.com/github/io-digital/tephra) [![Test Coverage](https://codeclimate.com/github/io-digital/tephra/badges/coverage.svg)](https://codeclimate.com/github/io-digital/tephra/coverage) [![Issue Count](https://codeclimate.com/github/io-digital/tephra/badges/issue_count.svg)](https://codeclimate.com/github/io-digital/tephra) [![Known Vulnerabilities](https://snyk.io/test/github/io-digital/tephra/badge.svg)](https://snyk.io/test/github/io-digital/tephra)
+# tephra [![Build Status](https://travis-ci.org/io-digital/tephra.svg?branch=master)](https://travis-ci.org/io-digital/tephra)
 
 > tephra, n: rock fragments and particles ejected by a volcanic eruption
 

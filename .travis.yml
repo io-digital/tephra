@@ -1,21 +1,9 @@
 language: node_js
 node_js:
+  - 14
+  - 12
   - 10
-  - 8
-  - 6
-env:
-  - CC_TEST_REPORTER_ID=b83c1c55a2d69a66cff5ad30be52cf23b6a8d44401b64f08eec9a2939cf3692b
 before_script:
-  # we're only installing freeradius so we can get
-  # the radclient utility required by the test suite
-  - sudo apt-get install freeradius
-  # which is why we immediately stop the daemon
-  # ensuring we don't get socket conflicts at runtime
-  - sudo service freeradius stop
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
-  - ./cc-test-reporter before-build
+  - sudo apt-get install -y freeradius-utils
 script:
-  - npm test --coverage
-after_script:
-  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
+  - npm test
