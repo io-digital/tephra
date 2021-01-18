@@ -1,17 +1,16 @@
 
-FROM node:lts-stretch
+FROM node:lts-buster
 
 ENV TRAVIS 1
 
 RUN apt-get update -y
 RUN apt-get upgrade -y
-RUN apt-get install -y freeradius-utils
+RUN apt-get install -y --no-install-recommends freeradius-utils
 
 RUN mkdir /app
 WORKDIR /app
-ADD package-lock.json /app
-ADD package.json /app
+COPY package*.json ./
 RUN npm install
-ADD . /app
+COPY ./ ./
 
 CMD ["npm", "test"]

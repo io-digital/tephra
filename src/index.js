@@ -137,6 +137,9 @@ module.exports = (class extends EventEmitter {
     vendor_attributes,
     on_sent
   ) {
+    // override the reply port for the sake of convenience
+    rinfo.port = this.COA_PORT
+
     this.send(
       'coa',
       'Disconnect-Request',
