@@ -1,6 +1,6 @@
 {
   "name": "tephra",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "license": "BSD-3-Clause",
   "description": "an evented radius server",
   "keywords": [
