@@ -1,5 +1,5 @@
 
-# tephra [![Build Status](https://travis-ci.org/io-digital/tephra.svg?branch=master)](https://travis-ci.org/io-digital/tephra)
+# tephra
 
 > tephra, n: rock fragments and particles ejected by a volcanic eruption
 
