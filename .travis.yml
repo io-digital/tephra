@@ -1,9 +1,0 @@
-language: node_js
-node_js:
-  - 16
-  - 14
-  - 12
-before_script:
-  - sudo apt-get install --no-install-recommends -y freeradius-utils
-script:
-  - npm test
