@@ -12,13 +12,13 @@ var users = {user1: 'secret_password'}
 
 var server = new tephra(
   'shared_secret',
-  1812, // authentication port
-  1813, // accounting port
-  3799, // change of authorisation port
-  [ // define any vendor dictionaries for vendor-specific attributes
+  1812,   // authentication port
+  1813,   // accounting port
+  3799,   // change of authorisation port
+  [       // add dictionaries for vendor-specific attributes
     {
       name: 'quux_vendor',
-      path: '/path/to/some/vendor/dictionary',
+      path: '/path/to/quux_vendor/dictionary',
       id: 12345
     }
   ]
