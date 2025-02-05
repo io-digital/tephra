@@ -1,9 +1,9 @@
 
 test/
+.dockerignore
 .editorconfig
 .gitignore
 .nvmrc
-.travis.yml
 .codeclimate.yml
 coverage/
 docker-compose.yaml
