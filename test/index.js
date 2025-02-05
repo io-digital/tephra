@@ -9,7 +9,7 @@ function radclient(
   on_exec
 ) {
   // TODO add options for flooding
-  var cmd = `echo "${packet}" | ${process.env.TRAVIS ? '/usr/bin/' : './test/'}radclient -n 1 -x ${address} ${packet_type} ${shared_secret}`
+  var cmd = `echo "${packet}" | ${process.env.TEST ? '/usr/bin/' : './test/'}radclient -n 1 -x ${address} ${packet_type} ${shared_secret}`
   cp.exec(cmd, {
     timeout: 1000
   }, function(err, stdout, stderr) {

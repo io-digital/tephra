@@ -1,7 +1,7 @@
 
 FROM node:lts-jod
 
-ENV TRAVIS 1
+ENV TEST 1
 
 RUN apt-get update -y && \
   apt-get upgrade -y && \
