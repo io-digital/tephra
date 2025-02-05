@@ -1,6 +1,6 @@
 {
   "name": "tephra",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "license": "BSD-3-Clause",
   "description": "An event-driven RADIUS server micro-framework",
   "keywords": [
