@@ -3,9 +3,9 @@
 
 > tephra, n: rock fragments and particles ejected by a volcanic eruption
 
-an evented [radius](https://en.wikipedia.org/wiki/RADIUS) server based on [node-radius](https://github.com/retailnext/node-radius) - now it's easier than ever to write a radius server that isn't standards-compliant! ;)
+An evented [RADIUS](https://en.wikipedia.org/wiki/RADIUS) server based on [node-radius](https://github.com/retailnext/node-radius). Now it's easier than ever to write a RADIUS server that isn't standards-compliant! ;)
 
-## example
+## Example
 
 ```javascript
 var users = {user1: 'secret_password'}
