@@ -1,11 +1,11 @@
 
-FROM node:lts-buster
+FROM node:lts-jod
 
 ENV TRAVIS 1
 
-RUN apt-get update -y
-RUN apt-get upgrade -y
-RUN apt-get install -y --no-install-recommends freeradius-utils
+RUN apt-get update -y && \
+  apt-get upgrade -y && \
+  apt-get install -y --no-install-recommends freeradius-utils
 
 RUN mkdir /app
 WORKDIR /app

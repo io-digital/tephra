@@ -2,14 +2,18 @@
   "name": "tephra",
   "version": "1.0.9",
   "license": "BSD-3-Clause",
-  "description": "an evented radius server",
+  "description": "An evented RADIUS server",
   "keywords": [
     "radius",
     "remote",
     "authentication",
     "dial-in",
     "user",
-    "service"
+    "service",
+    "aaa",
+    "authorization",
+    "authorisation",
+    "accounting"
   ],
   "scripts": {
     "test": "if [ $(uname) = 'Darwin' ]; then echo NOTICE: please use 'make test' to run the test suite; exit 1; else mocha test; fi"
