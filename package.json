@@ -2,7 +2,7 @@
   "name": "tephra",
   "version": "1.0.9",
   "license": "BSD-3-Clause",
-  "description": "An evented RADIUS server",
+  "description": "An event-driven RADIUS server micro-framework",
   "keywords": [
     "radius",
     "remote",
