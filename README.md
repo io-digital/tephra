@@ -35,7 +35,7 @@ server.on('Access-Request', function(packet, rinfo, accept, reject) {
 
   var attributes = [
     ['foo', 'bar'],
-    ['baz', 'qux'],
+    ['baz', 'qux']
   ]
 
   var vendor_attributes = {
