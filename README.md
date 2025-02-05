@@ -6,8 +6,10 @@ An event-driven [RADIUS](https://en.wikipedia.org/wiki/RADIUS) server micro-fram
 ## Example
 
 ```javascript
-var users = {user1: 'secret_password'}
 var tephra = require('tephra')
+
+var users = {user1: 'secret_password'}
+
 var server = new tephra(
   'shared_secret',
   1812, // authentication port
@@ -15,7 +17,7 @@ var server = new tephra(
   3799, // change of authorisation port
   [ // define any vendor dictionaries for vendor-specific attributes
     {
-      name: 'some_vendor',
+      name: 'quux_vendor',
       path: '/path/to/some/vendor/dictionary',
       id: 12345
     }
@@ -23,34 +25,45 @@ var server = new tephra(
 )
 
 server.on('Access-Request', function(packet, rinfo, accept, reject) {
-  var username = packet.attributes['User-Name'],
-      password = packet.attributes['User-Password']
-  if (username in users && users[username] === password) {
-    return accept(
-      [
-        ['put', 'your'],
-        ['response', 'attribute'],
-        ['pairs', 'here']
-      ],
-      { /* and vendor attributes here */
-        some_vendor: [
-          ['foo', 'bar']
-        ]
-      },
-      console.log
-    )
+  var username = packet.attributes['User-Name']
+  var password = packet.attributes['User-Password']
+
+  if (!(username in users && users[username] === password)) {
+    reject([], {}, console.log)
+    return
   }
-  reject([], {}, console.log)
+
+  var attributes = [
+    ['foo', 'bar'],
+    ['baz', 'qux'],
+  ]
+
+  var vendor_attributes = {
+    quux_vendor: [
+      ['foo', 'bar']
+    ]
+  }
+
+  accept(attributes, vendor_attributes, console.log)
+
 }).on('Accounting-Request', function(packet, rinfo, respond) {
+
   // catch all accounting-requests
   respond([], {}, console.log)
+
 }).on('Accounting-Request-Start', function(packet, rinfo, respond) {
+
   // or just catch specific accounting-request status types...
   respond([], {}, console.log)
+
 }).on('Accounting-Request-Interim-Update', function(packet, rinfo, respond) {
+
   respond([], {}, console.log)
+
 }).on('Accounting-Request-Stop', function(packet, rinfo, respond) {
+
   respond([], {}, console.log)
+
 })
 
 server.bind()
