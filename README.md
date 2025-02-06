@@ -7,8 +7,7 @@ An event-driven [RADIUS](https://en.wikipedia.org/wiki/RADIUS) server micro-fram
 
 Key | Type | Required | Notes
 --- | ---- | -------- | -----
-`sharedSecret` | `String` |
-<input type="checkbox" checked disabled> |
+`sharedSecret` | `String` | <input type="checkbox" checked disabled> |
 `ports` | `Object` | <input type="checkbox" checked disabled> |
 `ports.authentication` | `Number` | <input type="checkbox" disabled> | Must be a valid port number (0 - 65535 inclusive)
 `ports.accounting` | `Number` | <input type="checkbox" disabled> | Must be a valid port number (0 - 65535 inclusive)
