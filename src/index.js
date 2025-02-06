@@ -10,27 +10,7 @@ import encode_response from './encode_response.js'
 import authentication_on_message from './authentication_on_message.js'
 import accounting_on_message from './accounting_on_message.js'
 import change_of_authorisation_on_message from './change_of_authorisation_on_message.js'
-
-function validate_vendor_dictionary(vendor_dictionary) {
-  return (
-    typeof vendor_dictionary.name === 'string' &&
-    vendor_dictionary.name.length &&
-    typeof vendor_dictionary.path === 'string' &&
-    vendor_dictionary.path.length &&
-    !isNaN(vendor_dictionary.id) &&
-    Number.isInteger(vendor_dictionary.id) &&
-    vendor_dictionary.id
-  )
-}
-
-function validate_port(port) {
-  return (
-    !isNaN(port) &&
-    Number.isInteger(port) &&
-    port >= 0 &&
-    port <= 65535
-  )
-}
+import * as validate from './validate.js'
 
 export default class extends EventEmitter {
 
@@ -69,7 +49,7 @@ export default class extends EventEmitter {
 
     if (vendor_dictionaries && Array.isArray(vendor_dictionaries)) {
       vendor_dictionaries.forEach(function(vendor_dictionary, idx) {
-        if (!validate_vendor_dictionary(vendor_dictionary)) {
+        if (!validate.vendor_dictionary(vendor_dictionary)) {
           throw new Error(
             `Vendor dictionary at index ${idx} is malformed. Expected {name: String, path: String, id: Number} but got ${JSON.stringify(vendor_dictionary)}`
           )
@@ -125,7 +105,7 @@ export default class extends EventEmitter {
 
       if (!port) return
 
-      if (!validate_port(port)) {
+      if (!validate.port(port)) {
         throw new Error(`Invalid port specified for ${name} socket`)
       }
 
