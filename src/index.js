@@ -97,23 +97,40 @@ export default class extends EventEmitter {
       throw new Error('At least one port is required')
     }
 
+    var sockets = [
+      {
+        name: 'authentication',
+        port: authentication_port,
+        key: 'authentication',
+        callback: authentication_on_message
+      },
+      {
+        name: 'accounting',
+        port: accounting_port,
+        key: 'accounting',
+        callback: accounting_on_message
+      },
+      {
+        name: 'change of authorisation',
+        port: change_of_authorisation_port,
+        key: 'change_of_authorisation',
+        callback: change_of_authorisation_on_message
+      }
+    ]
+
     this.sockets = {}
 
-    void [
-      {name: 'authentication', value: authentication_port, socket: 'authentication', callback: authentication_on_message},
-      {name: 'accounting', value: accounting_port, socket: 'accounting', callback: accounting_on_message},
-      {name: 'change of authorisation', value: change_of_authorisation_port, socket: 'change_of_authorisation', callback: change_of_authorisation_on_message}
-    ].forEach(function(port) {
-      var {name, value, socket, callback} = port
+    sockets.forEach(function(socket) {
+      var {name, port, key, callback} = socket
 
-      if (!value) return
+      if (!port) return
 
-      if (!validate_port(value)) {
+      if (!validate_port(port)) {
         throw new Error(`Invalid port specified for ${name} socket`)
       }
 
-      this[socket] = value
-      this.sockets[socket] = dgram.createSocket('udp4', callback.bind(this))
+      this[key] = port
+      this.sockets[key] = dgram.createSocket('udp4', callback.bind(this))
     }, this)
   }
 
