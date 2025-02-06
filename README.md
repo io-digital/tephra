@@ -77,6 +77,22 @@ server.on('Access-Request', function(packet, rinfo, accept, reject) {
 
   respond([], {}, console.log)
 
+}).on('CoA-ACK', function(packet, rinfo) {
+
+  console.log(packet, rinfo)
+
+}).on('CoA-NAK', function(packet, rinfo) {
+
+  console.log(packet, rinfo)
+
+}).on('Disconnect-ACK', function(packet, rifno) {
+
+  console.log(packet, rinfo)
+
+}).on('Disconnect-NAK', function(packet, rinfo) {
+
+  console.log(packet, rinfo)
+
 })
 
 server.bind()
