@@ -3,6 +3,18 @@
 
 An event-driven [RADIUS](https://en.wikipedia.org/wiki/RADIUS) server micro-framework based on [node-radius](https://github.com/retailnext/node-radius). Now it's easier than ever to write a RADIUS server that isn't standards-compliant! `;)`
 
+## Configuration
+
+Key | Type | Required | Notes
+--- | ---- | -------- | -----
+`sharedSecret` | `String` |
+<input type="checkbox" checked disabled> |
+`ports` | `Object` | <input type="checkbox" checked disabled> |
+`ports.authentication` | `Number` | <input type="checkbox" disabled> | Must be a valid port number (0 - 65535 inclusive)
+`ports.accounting` | `Number` | <input type="checkbox" disabled> | Must be a valid port number (0 - 65535 inclusive)
+`ports.changeOfAuthorisation` | `Number` | <input type="checkbox" disabled> | Must be a valid port number (0 - 65535 inclusive)
+`vendorDictionaries` | `Array` | <input type="checkbox" disabled> | Elements of the array must be objects that conform to `{name: String, path: String, id: Number}`
+
 ## Example
 
 ```javascript
@@ -10,19 +22,21 @@ var tephra = require('tephra')
 
 var users = {user1: 'secret_password'}
 
-var server = new tephra(
-  'shared_secret',
-  1812,   // authentication port
-  1813,   // accounting port
-  3799,   // change of authorisation port
-  [       // add dictionaries for vendor-specific attributes
+var server = new tephra({
+  sharedSecret: 'shared_secret',
+  ports: {
+    authentication: 1812,
+    accounting: 1813,
+    changeOfAuthorisation: 1814
+  },
+  vendorDictionaries: [
     {
       name: 'quux_vendor',
       path: '/path/to/quux_vendor/dictionary',
       id: 12345
     }
   ]
-)
+})
 
 server.on('Access-Request', function(packet, rinfo, accept, reject) {
   var username = packet.attributes['User-Name']
