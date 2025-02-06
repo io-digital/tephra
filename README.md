@@ -1,18 +1,18 @@
 
 # tephra
 
-An event-driven [RADIUS](https://en.wikipedia.org/wiki/RADIUS) server micro-framework based on [node-radius](https://github.com/retailnext/node-radius). Now it's easier than ever to write a RADIUS server that isn't standards-compliant! `;)`
+An event-driven [RADIUS](https://en.wikipedia.org/wiki/RADIUS) server micro-framework based on [node-radius](https://github.com/retailnext/node-radius). Now it's easier than ever to write a RADIUS server that isn't standards-compliant! 😉
 
 ## Configuration
 
 Key | Type | Required | Notes
 --- | ---- | -------- | -----
-`sharedSecret` | `String` | [x] |
-`ports` | `Object` | [x] |
-`ports.authentication` | `Number` | [ ] | Must be a valid port number (0 - 65535 inclusive)
-`ports.accounting` | `Number` | [ ] | Must be a valid port number (0 - 65535 inclusive)
-`ports.changeOfAuthorisation` | `Number` | [ ] | Must be a valid port number (0 - 65535 inclusive)
-`vendorDictionaries` | `Array` | [ ] | Elements of the array must be objects that conform to `{name: String, path: String, id: Number}`
+`sharedSecret` | `String` | ✅ |
+`ports` | `Object` | ✅ |
+`ports.authentication` | `Number` | ❌ | Must be a valid port number (0 - 65535 inclusive)
+`ports.accounting` | `Number` | ❌ | Must be a valid port number (0 - 65535 inclusive)
+`ports.changeOfAuthorisation` | `Number` | ❌ | Must be a valid port number (0 - 65535 inclusive)
+`vendorDictionaries` | `Array` | ❌ | Elements of the array must be objects that conform to `{name: String, path: String, id: Number}`
 
 ## Example
 
