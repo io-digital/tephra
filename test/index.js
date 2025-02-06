@@ -33,88 +33,120 @@ describe('tephra', function() {
 
   this.timeout(5000)
 
-  describe('lifecycle', function() {
+  describe('constructor', function() {
 
-    var server
-
-    it('#constructor should throw if required arguments are missing', function() {
+    it('should throw if required arguments are missing', function() {
       expect(function() {
         new tephra
-      }).to.throw(/Missing SHARED_SECRET/)
+      }).to.throw(/Missing shared secret/)
     })
 
-    describe('vendor dictionaries', function() {
+    it('should throw an error if no ports are specified', function() {
+      expect(function() {
+        new tephra({
+          shared_secret: test_secret
+        })
+      }).to.throw(/At least one port is required/)
 
-      it('#constructor should throw if vendor dictionary arguments are invalid', function() {
-        expect(function() {
-          new tephra(
-            test_secret,
-            1812,
-            1813,
-            1814,
-            [
-              {}
-            ]
-          )
-        }).to.throw(
-          /\{vendor\:\ String\,\ path\:\ String\,\ id\:\ Number\}/
-        )
-      })
+      expect(function() {
+        new tephra({
+          shared_secret: test_secret,
+          ports: {}
+        })
+      }).to.throw(/At least one port is required/)
+    })
 
-      it('should hold an internal representation of vendor dictionaries, mapping vendor name to vendor id', function() {
-        var t = new tephra(
-          test_secret,
-          1812,
-          1813,
-          1814,
-          [
-            {
-              vendor: 'telkom',
-              path: './test/dictionaries/telkom.dictionary',
-              id: 1431
-            },
-            {
-              vendor: 'mikrotik',
-              path: './test/dictionaries/mikrotik.dictionary',
-              id: 14988
-            }
+    it('should throw if vendor dictionary arguments are invalid', function() {
+      expect(function() {
+        new tephra({
+          shared_secret: test_secret,
+          ports: {
+            auth: 1812,
+            acct: 1813,
+            coa: 1814
+          },
+          vendor_dictionaries: [
+            {}
           ]
-        )
-        expect(t.VENDOR_IDS.mikrotik).to.equal(14988)
-        expect(t.VENDOR_IDS.telkom).to.equal(1431)
-      })
+        })
+      }).to.throw(
+        /Vendor dictionary at index 0 is malformed/
+      )
     })
 
-    describe('sockets', function() {
-      server = new tephra(
-        test_secret,
-        1812,
-        1813,
-        1814
-      )
-
-      it('should bind', function(done) {
-        server.bind(done)
+    it('should hold an internal representation of vendor dictionaries, mapping vendor name to vendor id', function() {
+      var t = new tephra({
+        shared_secret: test_secret,
+        ports: {
+          auth: 1812,
+          acct: 1813,
+          coa: 1814
+        },
+        vendor_dictionaries: [
+          {
+            name: 'telkom',
+            path: './test/dictionaries/telkom.dictionary',
+            id: 1431
+          },
+          {
+            name: 'mikrotik',
+            path: './test/dictionaries/mikrotik.dictionary',
+            id: 14988
+          }
+        ]
       })
 
-      it('should unbind', function(done) {
-        server.unbind(done)
+      expect(t.vendor_ids.mikrotik).to.equal(14988)
+      expect(t.vendor_ids.telkom).to.equal(1431)
+    })
+
+  })
+
+  describe('socket permutations (authentication, accounting, change of authorisation)', function() {
+
+    var test_cases = [
+      [1812, 1813, 1814],
+      [1812, 1813, false],
+      [1812, false, 1814],
+      [1812, false, false],
+      [false, 1813, 1814],
+      [false, 1813, false],
+      [false, false, 1814]
+    ]
+
+    test_cases.forEach(function(test_case, idx) {
+      it(`permutation ${idx + 1} (${JSON.stringify(test_case)}) should bind and unbind successfully`, function(done) {
+        var t = new tephra({
+          shared_secret: test_secret,
+          ports: {
+            auth: test_case[0],
+            acct: test_case[1],
+            coa: test_case[2]
+          }
+        })
+
+        t.bind(function() {
+          t.unbind(done)
+        })
       })
     })
   })
 
-  describe('auth, acct and coa packet transmission', function() {
+  describe('authentication, accounting, and change of authorisation packet transmission', function() {
 
     var server
 
     beforeEach(function(done) {
       try {
-        server = new tephra(
-          test_secret,
-          1812,
-          1813,
-          1814
-        )
+        server = new tephra({
+          shared_secret: test_secret,
+          ports: {
+            auth: 1812,
+            acct: 1813,
+            coa: 1814
+          }
+        })
+
         server.bind(done)
       } catch (e) {
         return done(e)
@@ -171,7 +203,7 @@ describe('tephra', function() {
 
     it('should send a response for accounting packets', function(done) {
       server.on('Accounting-Request', function(request, rinfo) {
-        server.respond('acct', request, 'Accounting-Response', rinfo, [], {}, done)
+        server.respond('accounting', request, 'Accounting-Response', rinfo, [], {}, done)
       })
 
       radclient(
@@ -226,7 +258,7 @@ describe('tephra', function() {
 
     it('should send a response for access-request packets', function(done) {
       server.on('Access-Request', function(request, rinfo, accept, reject) {
-        server.respond('auth', request, 'Access-Accept', rinfo, [], {}, done)
+        server.respond('authentication', request, 'Access-Accept', rinfo, [], {}, done)
       })
 
       radclient(
@@ -244,6 +276,7 @@ describe('tephra', function() {
       server.on('Access-Request', function(request, rinfo, accept, reject) {
         accept([], {}, done)
       })
+
       radclient(
         'localhost:1812',
         'auth',
@@ -287,7 +320,7 @@ describe('tephra', function() {
 
     it('#send should yield an error if supplied non-array type', function(done) {
       server.send(
-        'acct',
+        'accounting',
         0,
         {address: '0.0.0.0', port: 12345},
         null,
@@ -310,7 +343,7 @@ describe('tephra', function() {
 
     it('#respond should yield an error if no packet is given', function(done) {
       server.respond(
-        'acct',
+        'accounting',
         null,
         0,
         {address: '0.0.0.0', port: 12345},

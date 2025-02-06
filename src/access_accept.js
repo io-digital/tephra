@@ -7,7 +7,7 @@ export default function access_accept(
   on_accepted
 ) {
   this.respond(
-    'auth',
+    'authentication',
     decoded,
     'Access-Accept',
     rinfo,

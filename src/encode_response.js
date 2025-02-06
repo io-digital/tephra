@@ -1,8 +1,6 @@
 
-// var radius = require('radius')
 var radius = (await import('radius')).default
 
-// var node_radius_shim = require('./node_radius_shim')
 import node_radius_shim from './node_radius_shim.js'
 
 export default function encode_response(
@@ -17,11 +15,12 @@ export default function encode_response(
       packet: packet,
       code: code,
       attributes: node_radius_shim.call(this, attributes, vendor_attributes),
-      secret: this.SHARED_SECRET
+      secret: this.shared_secret
     })
   } catch (err) {
     on_error(err)
     return
   }
+
   return encoded
 }

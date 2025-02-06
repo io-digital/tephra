@@ -7,7 +7,7 @@ export default function accounting_respond(
   on_responded
 ) {
   this.respond(
-    'acct',
+    'accounting',
     decoded,
     'Accounting-Response',
     rinfo,

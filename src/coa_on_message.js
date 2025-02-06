@@ -1,5 +1,4 @@
 
-// var decode = require('./decode')
 import decode from './decode.js'
 
 export default function coa_on_message(message, rinfo) {
@@ -12,10 +11,12 @@ export default function coa_on_message(message, rinfo) {
         'Disconnect-NAK',
         'CoA-ACK',
         'CoA-NAK'
-      ].indexOf(packet.code) !== -1
+      ].includes(packet.code)
     },
     this.emit.bind(this, 'error#decode#coa')
   )
+
   if (!decoded) return
+
   this.emit(decoded.code, decoded, rinfo)
 }

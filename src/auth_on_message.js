@@ -1,11 +1,6 @@
 
-// var decode = require('./decode')
 import decode from './decode.js'
-
-// var access_accept = require('./access_accept')
 import access_accept from './access_accept.js'
-
-// var access_reject = require('./access_reject')
 import access_reject from './access_reject.js'
 
 export default function auth_on_message(message, rinfo) {
@@ -17,10 +12,12 @@ export default function auth_on_message(message, rinfo) {
     },
     this.emit.bind(this, 'error#decode#auth')
   )
+
   if (!decoded) {
     // seems sensible to default to access-reject here
     return access_reject.call(this, decoded, rinfo)
   }
+
   this.emit(
     decoded.code,
     decoded,

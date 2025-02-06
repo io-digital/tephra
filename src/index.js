@@ -1,90 +1,140 @@
 
-// var EventEmitter = require('events')
 import {EventEmitter} from 'events'
-
-// var dgram = require('dgram')
 import dgram from 'dgram'
 
-// var radius = require('radius')
 var radius = (await import('radius')).default
 
-// var send = require('./send')
 import send from './send.js'
-
-// var encode_request = require('./encode_request')
 import encode_request from './encode_request.js'
-
-// var encode_response = require('./encode_response')
 import encode_response from './encode_response.js'
-
-// var auth_on_message = require('./auth_on_message')
 import auth_on_message from './auth_on_message.js'
-
-// var acct_on_message = require('./acct_on_message')
 import acct_on_message from './acct_on_message.js'
-
-// var coa_on_message = require('./coa_on_message')
 import coa_on_message from './coa_on_message.js'
+
+function validate_vendor_dictionary(vendor_dictionary) {
+  return (
+    typeof vendor_dictionary.name === 'string' &&
+    vendor_dictionary.name.length &&
+    typeof vendor_dictionary.path === 'string' &&
+    vendor_dictionary.path.length &&
+    !isNaN(vendor_dictionary.id) &&
+    Number.isInteger(vendor_dictionary.id) &&
+    vendor_dictionary.id
+  )
+}
+
+function validate_port(port) {
+  return (
+    !isNaN(port) &&
+    Number.isInteger(port) &&
+    port >= 0 &&
+    port <= 65535
+  )
+}
 
 export default class extends EventEmitter {
 
   constructor(
-    SHARED_SECRET,
-    AUTH_PORT,
-    ACCT_PORT,
-    COA_PORT,
-    VENDOR_DICTIONARIES
+    options = {
+      shared_secret: '',
+      sharedSecret: '',
+      ports: {
+        auth: false,
+        authentication: false,
+        acct: false,
+        accounting: false,
+        coa: false,
+        change_of_authorisation: false,
+        changeOfAuthorisation: false,
+        changeOfAuthorization: false
+      },
+      vendor_dictionaries: null,
+      vendorDictionaries: null
+    }
   ) {
     super()
 
-    if (!(SHARED_SECRET && AUTH_PORT && ACCT_PORT && COA_PORT)) {
-      throw new Error('Missing SHARED_SECRET, AUTH_PORT, ACCT_PORT or COA_PORT arguments')
+    var shared_secret = (options.shared_secret || options.sharedSecret)
+
+    if (!shared_secret) {
+      throw new Error('Missing shared secret')
     }
 
-    this.SHARED_SECRET = SHARED_SECRET
-    this.AUTH_PORT = AUTH_PORT
-    this.ACCT_PORT = ACCT_PORT
-    this.COA_PORT = COA_PORT
-    this.VENDOR_IDS = {}
+    this.shared_secret = shared_secret
 
-    if (Array.isArray(VENDOR_DICTIONARIES) && VENDOR_DICTIONARIES.length) {
-      VENDOR_DICTIONARIES.forEach((dict, idx) => {
-        if (!(
-          typeof dict.vendor === 'string' &&
-          dict.vendor.length &&
-          typeof dict.path === 'string' &&
-          dict.path.length &&
-          typeof dict.id === 'number' &&
-          dict.id
-        )) {
+    var vendor_dictionaries = (options.vendor_dictionaries || options.vendorDictionaries)
+
+    this.vendor_ids = {}
+
+    if (vendor_dictionaries && Array.isArray(vendor_dictionaries)) {
+      vendor_dictionaries.forEach(function(vendor_dictionary, idx) {
+        if (!validate_vendor_dictionary(vendor_dictionary)) {
           throw new Error(
-            `Expected {vendor: String, path: String, id: Number} at index ${idx} in VENDOR_DICTIONARIES`
+            `Vendor dictionary at index ${idx} is malformed. Expected {name: String, path: String, id: Number} but got ${JSON.stringify(vendor_dictionary)}`
           )
         }
-        radius.add_dictionary(dict.path)
-        this.VENDOR_IDS[dict.vendor] = dict.id
-      })
+
+        radius.add_dictionary(vendor_dictionary.path)
+        this.vendor_ids[vendor_dictionary.name] = vendor_dictionary.id
+      }, this)
     }
 
-    this.SOCKETS = {
-      AUTH: dgram.createSocket('udp4', auth_on_message.bind(this)),
-      ACCT: dgram.createSocket('udp4', acct_on_message.bind(this)),
-      COA: dgram.createSocket('udp4', coa_on_message.bind(this))
+    if (!options.ports) {
+      throw new Error('At least one port is required')
     }
+
+    var authentication_port = +(options.ports.auth || options.ports.authentication)
+    var accounting_port = +(options.ports.acct || options.ports.accounting)
+    var change_of_authorisation_port = +(
+      options.ports.coa ||
+      options.ports.change_of_authorisation ||
+      options.ports.changeOfAuthorisation ||
+      options.ports.changeOfAuthorization
+    )
+
+    if (!(authentication_port || accounting_port || change_of_authorisation_port)) {
+      throw new Error('At least one port is required')
+    }
+
+    this.sockets = {}
+
+    void [
+      {name: 'authentication', value: authentication_port, socket: 'authentication', callback: auth_on_message},
+      {name: 'accounting', value: accounting_port, socket: 'accounting', callback: acct_on_message},
+      {name: 'change of authorisation', value: change_of_authorisation_port, socket: 'change_of_authorisation', callback: coa_on_message}
+    ].forEach(function(port) {
+      var {name, value, socket, callback} = port
+
+      if (!value) return
+
+      if (!validate_port(value)) {
+        throw new Error(`Invalid port specified for ${name} socket`)
+      }
+
+      this[socket] = value
+      this.sockets[socket] = dgram.createSocket('udp4', callback.bind(this))
+    }, this)
   }
 
   bind(on_bound) {
-    this.SOCKETS.AUTH.bind(this.AUTH_PORT)
-    this.SOCKETS.ACCT.bind(this.ACCT_PORT)
-    this.SOCKETS.COA.bind(this.COA_PORT)
+    Object.keys(
+      this.sockets
+    ).forEach(function(socket) {
+      this.sockets[socket].bind(this[socket])
+    }, this)
+
     return typeof on_bound === 'function' ? on_bound() : this
   }
 
   unbind(on_unbound) {
-    this.SOCKETS.AUTH.close()
-    this.SOCKETS.ACCT.close()
-    this.SOCKETS.COA.close()
+    Object.keys(
+      this.sockets
+    ).forEach(function(socket) {
+      this.sockets[socket].close()
+    }, this)
+
     this.removeAllListeners()
+
     return typeof on_unbound === 'function' ? on_unbound() : this
   }
 
@@ -99,6 +149,7 @@ export default class extends EventEmitter {
     if (typeof type !== 'string') {
       throw new Error('Missing required string argument type')
     }
+
     var encoded = encode_request.call(
       this,
       code,
@@ -106,9 +157,11 @@ export default class extends EventEmitter {
       vendor_attributes,
       on_sent
     )
+
     if (!encoded) return
+
     send.call(
-      this.SOCKETS[type.toUpperCase()],
+      this.sockets[type.toLowerCase()],
       encoded,
       rinfo,
       on_sent
@@ -127,6 +180,7 @@ export default class extends EventEmitter {
     if (typeof type !== 'string') {
       throw new Error('Missing required string argument type')
     }
+
     var encoded = encode_response.call(
       this,
       packet,
@@ -135,9 +189,11 @@ export default class extends EventEmitter {
       vendor_attributes,
       on_responded
     )
+
     if (!encoded) return
+
     send.call(
-      this.SOCKETS[type.toUpperCase()],
+      this.sockets[type.toLowerCase()],
       encoded,
       rinfo,
       on_responded
@@ -150,11 +206,10 @@ export default class extends EventEmitter {
     vendor_attributes,
     on_sent
   ) {
-    // override the reply port for the sake of convenience
-    rinfo.port = this.COA_PORT
+    rinfo.port = this.change_of_authorisation
 
     this.send(
-      'coa',
+      'change_of_authorisation',
       'Disconnect-Request',
       rinfo,
       attributes,

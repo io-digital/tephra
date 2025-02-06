@@ -7,7 +7,7 @@ export default function access_reject(
   on_rejected
 ) {
   this.respond(
-    'auth',
+    'authentication',
     decoded,
     'Access-Reject',
     rinfo,
