@@ -103,7 +103,9 @@ export default class extends EventEmitter {
     sockets.forEach(function(socket) {
       var {name, port, key, callback} = socket
 
-      if (!port) return
+      // check if we can return early but also make sure the
+      // port isn't set to zero because zero is a valid port number
+      if (!port && port !== 0) return
 
       if (!validate.port(port)) {
         throw new Error(`Invalid port specified for ${name} socket`)
