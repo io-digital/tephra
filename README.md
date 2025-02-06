@@ -1,30 +1,43 @@
 
 # tephra
 
-An event-driven [RADIUS](https://en.wikipedia.org/wiki/RADIUS) server micro-framework based on [node-radius](https://github.com/retailnext/node-radius). Now it's easier than ever to write a RADIUS server that isn't standards-compliant! `;)`
+An event-driven [RADIUS](https://en.wikipedia.org/wiki/RADIUS) server micro-framework based on [node-radius](https://github.com/retailnext/node-radius).
+
+## Configuration
+
+Key | Type | Required | Notes
+--- | ---- | -------- | -----
+`secret` | `String` | ✅ |
+`ports` | `Object` | ✅ | All port types are optional, but at least one must be specified, so as to permit instances with different responsibilities.
+`ports.authentication` | `Number` | ❌ | Must be a valid port number (0 - 65535 inclusive)
+`ports.accounting` | `Number` | ❌ | Must be a valid port number (0 - 65535 inclusive)
+`ports.changeOfAuthorisation` | `Number` | ❌ | Must be a valid port number (0 - 65535 inclusive)
+`vendorDictionaries` | `Array` | ❌ | Elements of the array must be objects that conform to `{name: String, path: String, id: Number}`
 
 ## Example
 
 ```javascript
-var tephra = require('tephra')
+import tephra from 'tephra'
 
-var users = {user1: 'secret_password'}
+var users = {user1: 'foo'}
 
-var server = new tephra(
-  'shared_secret',
-  1812,   // authentication port
-  1813,   // accounting port
-  3799,   // change of authorisation port
-  [       // add dictionaries for vendor-specific attributes
+var server = new tephra({
+  secret: 'foo',
+  ports: {
+    authentication: 1812,
+    accounting: 1813,
+    changeOfAuthorisation: 1814
+  },
+  vendorDictionaries: [
     {
       name: 'quux_vendor',
       path: '/path/to/quux_vendor/dictionary',
       id: 12345
     }
   ]
-)
+})
 
-server.on('Access-Request', function(packet, rinfo, accept, reject) {
+server.on('Access-Request', function(packet, remote_host, accept, reject) {
   var username = packet.attributes['User-Name']
   var password = packet.attributes['User-Password']
 
@@ -46,23 +59,39 @@ server.on('Access-Request', function(packet, rinfo, accept, reject) {
 
   accept(attributes, vendor_attributes, console.log)
 
-}).on('Accounting-Request', function(packet, rinfo, respond) {
+}).on('Accounting-Request', function(packet, remote_host, respond) {
 
   // catch all accounting-requests
   respond([], {}, console.log)
 
-}).on('Accounting-Request-Start', function(packet, rinfo, respond) {
+}).on('Accounting-Request-Start', function(packet, remote_host, respond) {
 
   // or just catch specific accounting-request status types...
   respond([], {}, console.log)
 
-}).on('Accounting-Request-Interim-Update', function(packet, rinfo, respond) {
+}).on('Accounting-Request-Interim-Update', function(packet, remote_host, respond) {
 
   respond([], {}, console.log)
 
-}).on('Accounting-Request-Stop', function(packet, rinfo, respond) {
+}).on('Accounting-Request-Stop', function(packet, remote_host, respond) {
 
   respond([], {}, console.log)
+
+}).on('CoA-ACK', function(packet, remote_host) {
+
+  console.log(packet, remote_host)
+
+}).on('CoA-NAK', function(packet, remote_host) {
+
+  console.log(packet, remote_host)
+
+}).on('Disconnect-ACK', function(packet, remote_host) {
+
+  console.log(packet, remote_host)
+
+}).on('Disconnect-NAK', function(packet, remote_host) {
+
+  console.log(packet, remote_host)
 
 })
 

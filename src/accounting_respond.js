@@ -1,18 +1,18 @@
 
-module.exports = function accounting_respond(
+export default function accounting_respond(
   decoded,
-  rinfo,
+  remote_host,
   attributes,
   vendor_attributes,
   on_responded
 ) {
   this.respond(
-    'acct',
+    'accounting',
     decoded,
     'Accounting-Response',
-    rinfo,
+    remote_host,
     attributes,
     vendor_attributes,
-    on_responded || function() {}
+    on_responded
   )
 }

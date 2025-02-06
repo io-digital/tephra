@@ -1,18 +1,18 @@
 
-module.exports = function access_accept(
+export default function access_accept(
   decoded,
-  rinfo,
+  remote_host,
   attributes,
   vendor_attributes,
   on_accepted
 ) {
   this.respond(
-    'auth',
+    'authentication',
     decoded,
     'Access-Accept',
-    rinfo,
+    remote_host,
     attributes,
     vendor_attributes,
-    on_accepted || function() {}
+    on_accepted
   )
 }

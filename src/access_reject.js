@@ -1,18 +1,18 @@
 
-module.exports = function access_reject(
+export default function access_reject(
   decoded,
-  rinfo,
+  remote_host,
   attributes,
   vendor_attributes,
   on_rejected
 ) {
   this.respond(
-    'auth',
+    'authentication',
     decoded,
     'Access-Reject',
-    rinfo,
+    remote_host,
     attributes,
     vendor_attributes,
-    on_rejected || function() {}
+    on_rejected
   )
 }

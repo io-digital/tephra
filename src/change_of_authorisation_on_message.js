@@ -1,7 +1,7 @@
 
-var decode = require('./decode')
+import decode from './decode.js'
 
-module.exports = function coa_on_message(message, rinfo) {
+export default function change_of_authorisation_on_message(message, remote_host) {
   var decoded = decode.call(
     this,
     message,
@@ -11,10 +11,12 @@ module.exports = function coa_on_message(message, rinfo) {
         'Disconnect-NAK',
         'CoA-ACK',
         'CoA-NAK'
-      ].indexOf(packet.code) !== -1
+      ].includes(packet.code)
     },
     this.emit.bind(this, 'error#decode#coa')
   )
+
   if (!decoded) return
-  this.emit(decoded.code, decoded, rinfo)
+
+  this.emit(decoded.code, decoded, remote_host)
 }

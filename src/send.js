@@ -1,11 +1,11 @@
 
-module.exports = function send(buffer, rinfo, on_sent) {
+export default function send(buffer, remote_host, on_sent) {
   this.send(
     buffer,
     0,
     buffer.length,
-    rinfo.port,
-    rinfo.address,
+    remote_host.port,
+    remote_host.address,
     on_sent
   )
 }
