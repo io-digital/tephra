@@ -1,5 +1,5 @@
 
-module.exports = function accounting_respond(
+export default function accounting_respond(
   decoded,
   rinfo,
   attributes,

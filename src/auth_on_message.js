@@ -1,9 +1,14 @@
 
-var decode = require('./decode')
-var access_accept = require('./access_accept')
-var access_reject = require('./access_reject')
+// var decode = require('./decode')
+import decode from './decode.js'
 
-module.exports = function auth_on_message(message, rinfo) {
+// var access_accept = require('./access_accept')
+import access_accept from './access_accept.js'
+
+// var access_reject = require('./access_reject')
+import access_reject from './access_reject.js'
+
+export default function auth_on_message(message, rinfo) {
   var decoded = decode.call(
     this,
     message,

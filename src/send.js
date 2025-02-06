@@ -1,5 +1,5 @@
 
-module.exports = function send(buffer, rinfo, on_sent) {
+export default function send(buffer, rinfo, on_sent) {
   this.send(
     buffer,
     0,

@@ -1,7 +1,8 @@
 
-var radius = require('radius')
+// var radius = require('radius')
+var radius = (await import('radius')).default
 
-module.exports = function decode(message, guard, on_error) {
+export default function decode(message, guard, on_error) {
   try {
     var decoded = radius.decode({
       packet: message,

@@ -1,5 +1,5 @@
 
-module.exports = function access_accept(
+export default function access_accept(
   decoded,
   rinfo,
   attributes,

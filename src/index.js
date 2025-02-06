@@ -1,19 +1,32 @@
 
-'use strict'
+// var EventEmitter = require('events')
+import {EventEmitter} from 'events'
 
-var EventEmitter = require('events')
-var dgram = require('dgram')
+// var dgram = require('dgram')
+import dgram from 'dgram'
 
-var radius = require('radius')
+// var radius = require('radius')
+var radius = (await import('radius')).default
 
-var send = require('./send')
-var encode_request = require('./encode_request')
-var encode_response = require('./encode_response')
-var auth_on_message = require('./auth_on_message')
-var acct_on_message = require('./acct_on_message')
-var coa_on_message = require('./coa_on_message')
+// var send = require('./send')
+import send from './send.js'
 
-module.exports = (class extends EventEmitter {
+// var encode_request = require('./encode_request')
+import encode_request from './encode_request.js'
+
+// var encode_response = require('./encode_response')
+import encode_response from './encode_response.js'
+
+// var auth_on_message = require('./auth_on_message')
+import auth_on_message from './auth_on_message.js'
+
+// var acct_on_message = require('./acct_on_message')
+import acct_on_message from './acct_on_message.js'
+
+// var coa_on_message = require('./coa_on_message')
+import coa_on_message from './coa_on_message.js'
+
+export default class extends EventEmitter {
 
   constructor(
     SHARED_SECRET,
@@ -149,4 +162,4 @@ module.exports = (class extends EventEmitter {
       on_sent
     )
   }
-})
+}

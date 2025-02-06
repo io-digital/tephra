@@ -1,5 +1,5 @@
 
-module.exports = function access_reject(
+export default function access_reject(
   decoded,
   rinfo,
   attributes,

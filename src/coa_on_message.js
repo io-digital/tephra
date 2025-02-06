@@ -1,7 +1,8 @@
 
-var decode = require('./decode')
+// var decode = require('./decode')
+import decode from './decode.js'
 
-module.exports = function coa_on_message(message, rinfo) {
+export default function coa_on_message(message, rinfo) {
   var decoded = decode.call(
     this,
     message,

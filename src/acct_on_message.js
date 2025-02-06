@@ -1,8 +1,11 @@
 
-var decode = require('./decode')
-var accounting_respond = require('./accounting_respond')
+// var decode = require('./decode')
+import decode from './decode.js'
 
-module.exports = function acct_on_message(message, rinfo) {
+// var accounting_respond = require('./accounting_respond')
+import accounting_respond from './accounting_respond.js'
+
+export default function acct_on_message(message, rinfo) {
   var decoded = decode.call(
     this,
     message,

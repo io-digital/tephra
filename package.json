@@ -23,8 +23,10 @@
     "url": "https://github.com/io-digital/tephra"
   },
   "engines": {
-    "node": ">=6.0.0"
+    "node": ">=14.0.0"
   },
+  "type": "module",
+  "module": "src/index.js",
   "devDependencies": {
     "chai": "5.1.2",
     "mocha": "11.1.0"

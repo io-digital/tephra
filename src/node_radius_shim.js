@@ -1,5 +1,5 @@
 
-module.exports = function node_radius_shim(
+export default function node_radius_shim(
   attributes,
   vendor_attributes
 ) {

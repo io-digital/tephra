@@ -1,6 +1,4 @@
 
-'use strict'
-
 function radclient(
   address,
   packet_type,
@@ -17,9 +15,11 @@ function radclient(
   })
 }
 
-var cp = require('child_process')
-var {expect} = require('chai')
-var tephra = require('../')
+import cp from 'child_process'
+
+import {expect} from 'chai'
+
+import tephra from '../src/index.js'
 
 // some fixtures
 var test_secret = 'shared_secret'
@@ -108,7 +108,6 @@ describe('tephra', function() {
     var server
 
     beforeEach(function(done) {
-      delete require.cache[require.resolve('..')]
       try {
         server = new tephra(
           test_secret,
