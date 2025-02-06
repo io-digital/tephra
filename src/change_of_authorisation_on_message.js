@@ -1,7 +1,7 @@
 
 import decode from './decode.js'
 
-export default function coa_on_message(message, rinfo) {
+export default function change_of_authorisation_on_message(message, rinfo) {
   var decoded = decode.call(
     this,
     message,

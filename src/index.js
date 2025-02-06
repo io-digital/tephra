@@ -7,9 +7,9 @@ var radius = (await import('radius')).default
 import send from './send.js'
 import encode_request from './encode_request.js'
 import encode_response from './encode_response.js'
-import auth_on_message from './auth_on_message.js'
-import acct_on_message from './acct_on_message.js'
-import coa_on_message from './coa_on_message.js'
+import authentication_on_message from './authentication_on_message.js'
+import accounting_on_message from './accounting_on_message.js'
+import change_of_authorisation_on_message from './change_of_authorisation_on_message.js'
 
 function validate_vendor_dictionary(vendor_dictionary) {
   return (
@@ -100,9 +100,9 @@ export default class extends EventEmitter {
     this.sockets = {}
 
     void [
-      {name: 'authentication', value: authentication_port, socket: 'authentication', callback: auth_on_message},
-      {name: 'accounting', value: accounting_port, socket: 'accounting', callback: acct_on_message},
-      {name: 'change of authorisation', value: change_of_authorisation_port, socket: 'change_of_authorisation', callback: coa_on_message}
+      {name: 'authentication', value: authentication_port, socket: 'authentication', callback: authentication_on_message},
+      {name: 'accounting', value: accounting_port, socket: 'accounting', callback: accounting_on_message},
+      {name: 'change of authorisation', value: change_of_authorisation_port, socket: 'change_of_authorisation', callback: change_of_authorisation_on_message}
     ].forEach(function(port) {
       var {name, value, socket, callback} = port
 

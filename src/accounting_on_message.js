@@ -2,7 +2,7 @@
 import decode from './decode.js'
 import accounting_respond from './accounting_respond.js'
 
-export default function acct_on_message(message, rinfo) {
+export default function accounting_on_message(message, rinfo) {
   var decoded = decode.call(
     this,
     message,

@@ -3,7 +3,7 @@ import decode from './decode.js'
 import access_accept from './access_accept.js'
 import access_reject from './access_reject.js'
 
-export default function auth_on_message(message, rinfo) {
+export default function authentication_on_message(message, rinfo) {
   var decoded = decode.call(
     this,
     message,
