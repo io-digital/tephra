@@ -7,7 +7,7 @@ An event-driven [RADIUS](https://en.wikipedia.org/wiki/RADIUS) server micro-fram
 
 Key | Type | Required | Notes
 --- | ---- | -------- | -----
-`sharedSecret` | `String` | ✅ |
+`secret` | `String` | ✅ |
 `ports` | `Object` | ✅ | All port types are optional, but at least one must be specified, so as to permit instances with different responsibilities.
 `ports.authentication` | `Number` | ❌ | Must be a valid port number (0 - 65535 inclusive)
 `ports.accounting` | `Number` | ❌ | Must be a valid port number (0 - 65535 inclusive)
@@ -19,10 +19,10 @@ Key | Type | Required | Notes
 ```javascript
 import tephra from 'tephra'
 
-var users = {user1: 'secret_password'}
+var users = {user1: 'foo'}
 
 var server = new tephra({
-  secret: 'shared_secret',
+  secret: 'foo',
   ports: {
     authentication: 1812,
     accounting: 1813,
