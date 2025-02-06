@@ -1,7 +1,7 @@
 
 export default function accounting_respond(
   decoded,
-  rinfo,
+  remote_host,
   attributes,
   vendor_attributes,
   on_responded
@@ -10,9 +10,9 @@ export default function accounting_respond(
     'accounting',
     decoded,
     'Accounting-Response',
-    rinfo,
+    remote_host,
     attributes,
     vendor_attributes,
-    on_responded || function() {}
+    on_responded
   )
 }

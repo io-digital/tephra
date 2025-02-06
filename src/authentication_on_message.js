@@ -3,7 +3,7 @@ import decode from './decode.js'
 import access_accept from './access_accept.js'
 import access_reject from './access_reject.js'
 
-export default function authentication_on_message(message, rinfo) {
+export default function authentication_on_message(message, remote_host) {
   var decoded = decode.call(
     this,
     message,
@@ -15,14 +15,14 @@ export default function authentication_on_message(message, rinfo) {
 
   if (!decoded) {
     // seems sensible to default to access-reject here
-    return access_reject.call(this, decoded, rinfo)
+    return access_reject.call(this, decoded, remote_host, [], {}, function() {})
   }
 
   this.emit(
     decoded.code,
     decoded,
-    rinfo,
-    access_accept.bind(this, decoded, rinfo),
-    access_reject.bind(this, decoded, rinfo)
+    remote_host,
+    access_accept.bind(this, decoded, remote_host),
+    access_reject.bind(this, decoded, remote_host)
   )
 }

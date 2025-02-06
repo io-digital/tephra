@@ -37,7 +37,7 @@ var server = new tephra({
   ]
 })
 
-server.on('Access-Request', function(packet, rinfo, accept, reject) {
+server.on('Access-Request', function(packet, remote_host, accept, reject) {
   var username = packet.attributes['User-Name']
   var password = packet.attributes['User-Password']
 
@@ -59,39 +59,39 @@ server.on('Access-Request', function(packet, rinfo, accept, reject) {
 
   accept(attributes, vendor_attributes, console.log)
 
-}).on('Accounting-Request', function(packet, rinfo, respond) {
+}).on('Accounting-Request', function(packet, remote_host, respond) {
 
   // catch all accounting-requests
   respond([], {}, console.log)
 
-}).on('Accounting-Request-Start', function(packet, rinfo, respond) {
+}).on('Accounting-Request-Start', function(packet, remote_host, respond) {
 
   // or just catch specific accounting-request status types...
   respond([], {}, console.log)
 
-}).on('Accounting-Request-Interim-Update', function(packet, rinfo, respond) {
+}).on('Accounting-Request-Interim-Update', function(packet, remote_host, respond) {
 
   respond([], {}, console.log)
 
-}).on('Accounting-Request-Stop', function(packet, rinfo, respond) {
+}).on('Accounting-Request-Stop', function(packet, remote_host, respond) {
 
   respond([], {}, console.log)
 
-}).on('CoA-ACK', function(packet, rinfo) {
+}).on('CoA-ACK', function(packet, remote_host) {
 
-  console.log(packet, rinfo)
+  console.log(packet, remote_host)
 
-}).on('CoA-NAK', function(packet, rinfo) {
+}).on('CoA-NAK', function(packet, remote_host) {
 
-  console.log(packet, rinfo)
+  console.log(packet, remote_host)
 
-}).on('Disconnect-ACK', function(packet, rifno) {
+}).on('Disconnect-ACK', function(packet, remote_host) {
 
-  console.log(packet, rinfo)
+  console.log(packet, remote_host)
 
-}).on('Disconnect-NAK', function(packet, rinfo) {
+}).on('Disconnect-NAK', function(packet, remote_host) {
 
-  console.log(packet, rinfo)
+  console.log(packet, remote_host)
 
 })
 

@@ -2,7 +2,7 @@
 import decode from './decode.js'
 import accounting_respond from './accounting_respond.js'
 
-export default function accounting_on_message(message, rinfo) {
+export default function accounting_on_message(message, remote_host) {
   var decoded = decode.call(
     this,
     message,
@@ -18,15 +18,15 @@ export default function accounting_on_message(message, rinfo) {
   this.emit(
     decoded.code,
     decoded,
-    rinfo,
-    accounting_respond.bind(this, decoded, rinfo)
+    remote_host,
+    accounting_respond.bind(this, decoded, remote_host)
   )
 
   // as well as accounting-request-{{status-type}}
   this.emit(
     `${decoded.code}-${decoded.attributes['Acct-Status-Type'] || 'unknown'}`,
     decoded,
-    rinfo,
-    accounting_respond.bind(this, decoded, rinfo)
+    remote_host,
+    accounting_respond.bind(this, decoded, remote_host)
   )
 }

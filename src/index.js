@@ -157,15 +157,15 @@ export default class extends EventEmitter {
   }
 
   send(
-    type,
+    socket,
     code,
-    rinfo,
+    remote_host,
     attributes,
     vendor_attributes,
     on_sent
   ) {
-    if (typeof type !== 'string') {
-      throw new Error('Missing required string argument type')
+    if (!(socket in this.sockets)) {
+      throw new Error(`Invalid socket given: ${socket}`)
     }
 
     var encoded = encode_request.call(
@@ -179,24 +179,24 @@ export default class extends EventEmitter {
     if (!encoded) return
 
     send.call(
-      this.sockets[type.toLowerCase()],
+      this.sockets[socket],
       encoded,
-      rinfo,
+      remote_host,
       on_sent
     )
   }
 
   respond(
-    type,
+    socket,
     packet,
     code,
-    rinfo,
+    remote_host,
     attributes,
     vendor_attributes,
     on_responded
   ) {
-    if (typeof type !== 'string') {
-      throw new Error('Missing required string argument type')
+    if (!(socket in this.sockets)) {
+      throw new Error(`Invalid socket given: ${socket}`)
     }
 
     var encoded = encode_response.call(
@@ -211,25 +211,24 @@ export default class extends EventEmitter {
     if (!encoded) return
 
     send.call(
-      this.sockets[type.toLowerCase()],
+      this.sockets[socket],
       encoded,
-      rinfo,
+      remote_host,
       on_responded
     )
   }
 
   disconnect(
-    rinfo,
-    attributes = [],
-    vendor_attributes = {},
+    remote_host,
+    attributes,
+    vendor_attributes,
     on_sent
   ) {
-    rinfo.port = this.change_of_authorisation
-
     this.send(
-      'change_of_authorisation',
+      // just send from the first available socket
+      this[Object.keys(this.sockets)[0]],
       'Disconnect-Request',
-      rinfo,
+      remote_host,
       attributes,
       vendor_attributes,
       on_sent

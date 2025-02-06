@@ -1,7 +1,7 @@
 
 export default function access_reject(
   decoded,
-  rinfo,
+  remote_host,
   attributes,
   vendor_attributes,
   on_rejected
@@ -10,9 +10,9 @@ export default function access_reject(
     'authentication',
     decoded,
     'Access-Reject',
-    rinfo,
+    remote_host,
     attributes,
     vendor_attributes,
-    on_rejected || function() {}
+    on_rejected
   )
 }

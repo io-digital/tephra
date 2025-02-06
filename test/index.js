@@ -63,6 +63,35 @@ describe('tephra', function() {
       }).to.throw(/At least one port is required/)
     })
 
+    it('should throw an error if invalid ports are specified', function() {
+      expect(function() {
+        new tephra({
+          secret: test_secret,
+          ports: {
+            acct: -1
+          }
+        })
+      }).to.throw(/Invalid port specified/)
+
+      expect(function() {
+        new tephra({
+          secret: test_secret,
+          ports: {
+            acct: 65536
+          }
+        })
+      }).to.throw(/Invalid port specified/)
+
+      expect(function() {
+        new tephra({
+          secret: test_secret,
+          ports: {
+            acct: 0.5
+          }
+        })
+      }).to.throw(/Invalid port specified/)
+    })
+
     it('should throw if vendor dictionary arguments are invalid', function() {
       expect(function() {
         new tephra({
@@ -112,7 +141,7 @@ describe('tephra', function() {
   describe('socket permutations (authentication, accounting, change of authorisation)', function() {
 
     port_permutations.forEach(function(ports, idx) {
-      it(`permutation ${idx + 1} (${JSON.stringify(ports)}) should bind and unbind successfully`, function(done) {
+      it(`permutation ${idx + 1} (${JSON.stringify(ports)}) should bind and unbind successfully using callbacks`, function(done) {
         var t = new tephra({
           secret: test_secret,
           ports: {
@@ -125,6 +154,21 @@ describe('tephra', function() {
         t.bind(function() {
           t.unbind(done)
         })
+      })
+
+      it(`permutation ${idx + 1} (${JSON.stringify(ports)}) should bind and unbind successfully without callbacks`, function(done) {
+        var t = new tephra({
+          secret: test_secret,
+          ports: {
+            auth: ports[0],
+            acct: ports[1],
+            coa: ports[2]
+          }
+        })
+
+        t.bind()
+        t.unbind()
+        done()
       })
     })
   })
@@ -209,8 +253,8 @@ describe('tephra', function() {
     })
 
     it('should send a response for accounting packets', function(done) {
-      t.on('Accounting-Request', function(request, rinfo) {
-        t.respond('accounting', request, 'Accounting-Response', rinfo, [], {}, done)
+      t.on('Accounting-Request', function(request, remote_host) {
+        t.respond('accounting', request, 'Accounting-Response', remote_host, [], {}, done)
       })
 
       radclient(
@@ -228,7 +272,7 @@ describe('tephra', function() {
     })
 
     it('should send a response for accounting packets using the event handler responder function', function(done) {
-      t.on('Accounting-Request', function(request, rinfo, respond) {
+      t.on('Accounting-Request', function(request, remote_host, respond) {
         respond([], {}, done)
       })
 
@@ -308,8 +352,8 @@ describe('tephra', function() {
     })
 
     it('should send an access-accept for access-request packets', function(done) {
-      t.on('Access-Request', function(request, rinfo, accept, reject) {
-        t.respond('authentication', request, 'Access-Accept', rinfo, [], {}, done)
+      t.on('Access-Request', function(request, remote_host, accept, reject) {
+        t.respond('authentication', request, 'Access-Accept', remote_host, [], {}, done)
       })
 
       radclient(
@@ -327,8 +371,8 @@ describe('tephra', function() {
     })
 
     it('should send an access-reject for access-request packets', function(done) {
-      t.on('Access-Request', function(request, rinfo, accept, reject) {
-        t.respond('authentication', request, 'Access-Reject', rinfo, [], {}, done)
+      t.on('Access-Request', function(request, remote_host, accept, reject) {
+        t.respond('authentication', request, 'Access-Reject', remote_host, [], {}, done)
       })
 
       radclient(
@@ -346,7 +390,7 @@ describe('tephra', function() {
     })
 
     it('should send an access-accept for access-request packets using the event handler responder function', function(done) {
-      t.on('Access-Request', function(request, rinfo, accept, reject) {
+      t.on('Access-Request', function(request, remote_host, accept, reject) {
         accept([], {}, done)
       })
 
@@ -365,7 +409,7 @@ describe('tephra', function() {
     })
 
     it('should send an access-reject for access-request packets using the event handler responder function', function(done) {
-      t.on('Access-Request', function(request, rinfo, accept, reject) {
+      t.on('Access-Request', function(request, remote_host, accept, reject) {
         reject([], {}, done)
       })
 
@@ -423,7 +467,7 @@ describe('tephra', function() {
       t.send('authentication', 'Disconnect-NAK', {port: 1814, address: 'localhost'}, [], {}, function() {})
     })
 
-    it('should throw when disconnect is not given rinfo', function() {
+    it('should throw when disconnect is not given remote host', function() {
       expect(
         t.disconnect.bind(t, null, [], {})
       ).to.throw()
@@ -435,11 +479,11 @@ describe('tephra', function() {
       ).to.not.throw
     })
 
-    it('should throw when send is supplied non-string type', function() {
-      expect(t.send).to.throw(/string argument type/)
+    it('should throw when send is not supplied with a socket type', function() {
+      expect(t.send.bind(t)).to.throw(/Invalid socket given/)
     })
 
-    it('should yield an error when send is supplied non-array type', function(done) {
+    it('should yield an error when send is supplied with invalid attribute argument types', function(done) {
       t.send(
         'accounting',
         0,
@@ -459,8 +503,8 @@ describe('tephra', function() {
       )
     })
 
-    it('should throw when respond is supplied non-string type', function() {
-      expect(t.respond).to.throw(/string argument type/)
+    it('should throw when respond is not supplied with a socket type', function() {
+      expect(t.respond.bind(t)).to.throw(/Invalid socket given/)
     })
 
     it('should yield an error when respond is not given a packet type', function(done) {

@@ -1,7 +1,7 @@
 
 export default function access_accept(
   decoded,
-  rinfo,
+  remote_host,
   attributes,
   vendor_attributes,
   on_accepted
@@ -10,9 +10,9 @@ export default function access_accept(
     'authentication',
     decoded,
     'Access-Accept',
-    rinfo,
+    remote_host,
     attributes,
     vendor_attributes,
-    on_accepted || function() {}
+    on_accepted
   )
 }

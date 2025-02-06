@@ -16,7 +16,7 @@
     "accounting"
   ],
   "scripts": {
-    "test": "if [ $(uname) = 'Darwin' ]; then echo NOTICE: please use 'make test' to run the test suite; exit 1; else mocha test; fi"
+    "test": "c8 --reporter=html mocha"
   },
   "repository": {
     "type": "git",
@@ -28,6 +28,7 @@
   "type": "module",
   "module": "src/index.js",
   "devDependencies": {
+    "c8": "10.1.3",
     "chai": "5.1.2",
     "mocha": "11.1.0"
   },

@@ -1,7 +1,7 @@
 
 import decode from './decode.js'
 
-export default function change_of_authorisation_on_message(message, rinfo) {
+export default function change_of_authorisation_on_message(message, remote_host) {
   var decoded = decode.call(
     this,
     message,
@@ -18,5 +18,5 @@ export default function change_of_authorisation_on_message(message, rinfo) {
 
   if (!decoded) return
 
-  this.emit(decoded.code, decoded, rinfo)
+  this.emit(decoded.code, decoded, remote_host)
 }

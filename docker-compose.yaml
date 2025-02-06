@@ -2,3 +2,5 @@
 services:
   tephra:
     build: .
+    volumes:
+      - ./coverage:/app/coverage
