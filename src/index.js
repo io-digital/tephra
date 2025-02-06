@@ -222,7 +222,7 @@ export default class extends EventEmitter {
     remote_host,
     attributes,
     vendor_attributes,
-    on_sent
+    on_disconnect_sent
   ) {
     this.send(
       // just send from the first available socket
@@ -231,7 +231,7 @@ export default class extends EventEmitter {
       remote_host,
       attributes,
       vendor_attributes,
-      on_sent
+      on_disconnect_sent
     )
   }
 }
