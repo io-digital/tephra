@@ -35,7 +35,7 @@ export default class extends EventEmitter {
   ) {
     super()
 
-    var secret = (options.secret || options.secret || options.sharedSecret)
+    var secret = (options.secret || options.shared_secret || options.sharedSecret)
 
     if (!secret) {
       throw new Error('Missing shared secret')
