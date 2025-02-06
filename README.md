@@ -8,7 +8,7 @@ An event-driven [RADIUS](https://en.wikipedia.org/wiki/RADIUS) server micro-fram
 Key | Type | Required | Notes
 --- | ---- | -------- | -----
 `sharedSecret` | `String` | ✅ |
-`ports` | `Object` | ✅ |
+`ports` | `Object` | ✅ | All port types are optional, but at least one must be specified, so as to permit instances with different responsibilities.
 `ports.authentication` | `Number` | ❌ | Must be a valid port number (0 - 65535 inclusive)
 `ports.accounting` | `Number` | ❌ | Must be a valid port number (0 - 65535 inclusive)
 `ports.changeOfAuthorisation` | `Number` | ❌ | Must be a valid port number (0 - 65535 inclusive)
