@@ -17,12 +17,12 @@ Key | Type | Required | Notes
 ## Example
 
 ```javascript
-var tephra = require('tephra')
+import tephra from 'tephra'
 
 var users = {user1: 'secret_password'}
 
 var server = new tephra({
-  sharedSecret: 'shared_secret',
+  secret: 'shared_secret',
   ports: {
     authentication: 1812,
     accounting: 1813,

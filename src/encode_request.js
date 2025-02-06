@@ -12,7 +12,7 @@ export default function encode_request(
   try {
     var encoded = radius.encode({
       attributes: node_radius_shim.call(this, attributes, vendor_attributes),
-      secret: this.shared_secret,
+      secret: this.secret,
       code: code
     })
   } catch (err) {

@@ -5,7 +5,7 @@ export default function decode(message, guard, on_error) {
   try {
     var decoded = radius.decode({
       packet: message,
-      secret: this.shared_secret
+      secret: this.secret
     })
   } catch (err) {
     on_error(err)

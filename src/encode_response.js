@@ -15,7 +15,7 @@ export default function encode_response(
       packet: packet,
       code: code,
       attributes: node_radius_shim.call(this, attributes, vendor_attributes),
-      secret: this.shared_secret
+      secret: this.secret
     })
   } catch (err) {
     on_error(err)

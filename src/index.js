@@ -36,6 +36,7 @@ export default class extends EventEmitter {
 
   constructor(
     options = {
+      secret: '',
       shared_secret: '',
       sharedSecret: '',
       ports: {
@@ -54,13 +55,13 @@ export default class extends EventEmitter {
   ) {
     super()
 
-    var shared_secret = (options.shared_secret || options.sharedSecret)
+    var secret = (options.secret || options.secret || options.sharedSecret)
 
-    if (!shared_secret) {
+    if (!secret) {
       throw new Error('Missing shared secret')
     }
 
-    this.shared_secret = shared_secret
+    this.secret = secret
 
     var vendor_dictionaries = (options.vendor_dictionaries || options.vendorDictionaries)
 
@@ -202,8 +203,8 @@ export default class extends EventEmitter {
 
   disconnect(
     rinfo,
-    attributes,
-    vendor_attributes,
+    attributes = [],
+    vendor_attributes = {},
     on_sent
   ) {
     rinfo.port = this.change_of_authorisation
