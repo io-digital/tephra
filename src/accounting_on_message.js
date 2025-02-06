@@ -24,7 +24,7 @@ export default function accounting_on_message(message, remote_host) {
 
   // as well as accounting-request-{{status-type}}
   this.emit(
-    `${decoded.code}-${decoded.attributes['Acct-Status-Type'] || 'unknown'}`,
+    `${decoded.code}-${decoded.attributes['Acct-Status-Type']}`,
     decoded,
     remote_host,
     accounting_respond.bind(this, decoded, remote_host)

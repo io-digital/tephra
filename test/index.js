@@ -252,6 +252,24 @@ describe('tephra', function() {
       )
     })
 
+    it('should emit a packet decode error if the request parameters are incorrect', function(done) {
+      t.on('error#decode#acct', done.bind(done, null))
+
+      radclient(
+        'localhost:1813',
+        'acct',
+        // using the wrong secret intentionally to test the packet decode error handling
+        test_secret + test_secret,
+        auth_request,
+        function(err) {
+          if (err && !err.killed) {
+            done(err)
+            return
+          }
+        }
+      )
+    })
+
     it('should send a response for accounting packets', function(done) {
       t.on('Accounting-Request', function(request, remote_host) {
         t.respond('accounting', request, 'Accounting-Response', remote_host, [], {}, done)
